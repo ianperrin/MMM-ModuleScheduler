@@ -1,0 +1,27 @@
+{
+  "name": "MMM-ModuleScheduler",
+  "version": "1.0.0",
+  "description": "A MagicMirror helper module to schedule when other modules should be shown or hidden.",
+  "main": "MMM-ModuleScheduler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ianperrin/MMM-ModuleScheduler.git"
+  },
+  "keywords": [
+    "MagicMirror",
+    "Module",
+    "Scheduler"
+  ],
+  "author": "Ian Perrin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ianperrin/MMM-ModuleScheduler/issues"
+  },
+  "homepage": "https://github.com/ianperrin/MMM-ModuleScheduler#readme",
+  "dependencies": {
+    "cron": "^1.1.0"
+  }
+}
