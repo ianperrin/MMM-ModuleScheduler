@@ -1,6 +1,8 @@
 # MMM-ModuleScheduler
 A MagicMirror helper module to schedule when other modules should be shown or hidden.
 
+**Please note that this module is work in progress and has not yet been fully tested, so please do use with care.**
+
 ## Installation
 
 In your terminal, go to your MagicMirror's Module folder:
