@@ -27,7 +27,12 @@ module.exports = NodeHelper.create({
             return true;
         }
         
-        if (notification === "SET_SCHEDULE_MODULE") {
+        if (notification === "REMOVE_ALL_SCHEDULES") {
+            console.log(this.name + ' is removing all schedules');
+            this.stopAllCronJobs();
+        }
+
+        if (notification === "CREATE_MODULE_SCHEDULE") {
             module = payload;
             if (!module.schedule.hasOwnProperty('from') || !module.schedule.hasOwnProperty('from')) {
                 console.log(this.name + ' cannot schedule the module ' + module.name + ' - check module_schedule');
@@ -46,8 +51,9 @@ module.exports = NodeHelper.create({
                 return false;
             }
 
+            this.cronJobs.push({module: module, showJob: showJob, hideJob: hideJob});
+            
             var now = new Date();
-            console.log('Current date: ' + now);
             if (showJob.nextDate().toDate() > now && hideJob.nextDate().toDate() > showJob.nextDate().toDate()) {
                 console.log(this.name + ' is hiding ' + module.name);
                 this.sendSocketNotification('HIDE_MODULE', module.id);
@@ -59,6 +65,27 @@ module.exports = NodeHelper.create({
             return true;
             
         }
+    },
+    
+    stopAllCronJobs: function() {
+        for (var i = 0; i < this.cronJobs.length; i++) {
+            var cronJob = this.cronJobs[i];
+            if( typeof cronJob.showJob === 'object') {
+                this.stopCronJob(cronJob.showJob);
+            }
+            if( typeof cronJob.hideJob === 'object') {
+                this.stopCronJob(cronJob.hideJob);
+            }
+        }
+        this.cronJobs.length = 0;
+    },
+    
+    stopCronJob: function(cronJob){
+        try {
+            cronJob.stop();
+        } catch(ex) {
+            console.log(this.name + ' could not stop cronJob');
+        }  
     },
 
     createCronJobForModule: function(module, type) {

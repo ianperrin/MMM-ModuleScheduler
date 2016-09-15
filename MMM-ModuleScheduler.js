@@ -21,10 +21,14 @@ Module.register("MMM-ModuleScheduler",{
 	notificationReceived: function(notification, payload, sender) {
 	    var self = this;
 		if (notification === 'DOM_OBJECTS_CREATED') {
+			// Reset
+			self.sendSocketNotification('REMOVE_ALL_SCHEDULES');
+			
+			// Create schedules
 			MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
 				Log.log(self.name + ' wants to schedule the display of ' + module.name );
 				if (typeof module.config.module_schedule === 'object') {
-            		self.sendSocketNotification('SET_SCHEDULE_MODULE', {name: module.name, id: module.identifier, schedule: module.config.module_schedule});
+            		self.sendSocketNotification('CREATE_MODULE_SCHEDULE', {name: module.name, id: module.identifier, schedule: module.config.module_schedule});
 				} else {
 				    Log.error( module.name + ' is configured to be scheduled, but the module_schedule option is undefined' );
 				}
