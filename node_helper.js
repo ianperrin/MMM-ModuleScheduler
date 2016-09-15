@@ -30,17 +30,26 @@ module.exports = NodeHelper.create({
         if (notification === "SET_SCHEDULE_MODULE") {
             module = payload;
             if (!module.schedule.hasOwnProperty('from') || !module.schedule.hasOwnProperty('from')) {
-                console.log(this.name + ' cannot scheduling the module ' + module.name + ': invalid schedule');
+                console.log(this.name + ' cannot schedule the module ' + module.name + ' - check module_schedule');
                 return false;
             }
 
             console.log(this.name + ' is scheduling the module ' + module.name );
 
             var showJob = this.createCronJobForModule(module, 'show');
+            if (!showJob) {
+                return false;
+            }
             var hideJob = this.createCronJobForModule(module, 'hide');
+            if (!hideJob) {
+                showJob.stop();
+                return false;
+            }
 
             var now = new Date();
-            if (showJob.nextDate().toDate() > now && hideJob.nextDate().toDate() > now) {
+            console.log('Current date: ' + now);
+            if (showJob.nextDate().toDate() > now && hideJob.nextDate().toDate() > showJob.nextDate().toDate()) {
+                console.log(this.name + ' is hiding ' + module.name);
                 this.sendSocketNotification('HIDE_MODULE', module.id);
             }
             console.log(this.name + ' has scheduled ' + module.name);
@@ -70,7 +79,7 @@ module.exports = NodeHelper.create({
                     console.log(self.name + ' will next ' + type + ' ' + module.name + ' at ' + this.nextDate().toDate());
                 }, 
                 onComplete: function() {
-                    console.log(self.name + ' has completed the ' + type + ' job');
+                    console.log(self.name + ' has completed the ' + type + ' job' + ' for ' + module.id);
                 }, 
                 start: true
             });
