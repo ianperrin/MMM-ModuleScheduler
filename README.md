@@ -1,6 +1,8 @@
 # MMM-ModuleScheduler
 A MagicMirror helper module to schedule when other modules should be shown or hidden.
 
+**Please note that this module is work in progress and has not yet been fully tested, so please do use with care.**
+
 ## Installation
 
 In your terminal, go to your MagicMirror's Module folder:
@@ -11,6 +13,16 @@ cd ~/MagicMirror/modules
 Clone this repository:
 ````
 git clone https://github.com/ianperrin/MMM-ModuleScheduler.git
+````
+
+Go to the modules folder:
+````
+cd MMM-ModuleScheduler
+````
+
+Install the dependencies:
+````
+npm install
 ````
 
 Add the module to the modules array in the `config/config.js` file:
@@ -49,4 +61,3 @@ git pull
 
 If you haven't changed the modules, this should work without any problems. 
 Type `git status` to see your changes, if there are any, you can reset them with `git reset --hard`. After that, git pull should be possible.
-
