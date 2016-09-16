@@ -39,7 +39,7 @@ Modify the configuration for the modules you wish to control the display of usin
 			position: 'top_left',
 			classes: 'scheduler',
 			config: {
-			  // DISPLAY THE CALENDAR BETWEEN 09:00 and 18:00 ON WEDNESDAYS
+				// DISPLAY THE CALENDAR BETWEEN 09:00 and 18:00 ON WEDNESDAYS
 				module_schedule: {from: '0 9 * * 3', to: '0 18 * * 3' },
 				calendars: [
 					{
@@ -49,6 +49,12 @@ Modify the configuration for the modules you wish to control the display of usin
 				]
 			}
 		},
+````
+**Note:**
+For more complex scheduling, multiple `from`and `to` expressions can be passed to the `module_schedule` option using an array, e.g. 
+````javascript
+			// DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
+			module_schedule: [{from: '30 9 * * SAT', to: '30 22 * * SUN'}, {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}]
 ````
 
 ## Updating

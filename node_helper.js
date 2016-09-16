@@ -19,8 +19,7 @@ module.exports = NodeHelper.create({
     // Override socketNotificationReceived method.
     socketNotificationReceived: function(notification, payload) {
         console.log(this.name + ' received ' + notification);
-        var self = this;
-        
+
         if (notification === "SET_CONFIG") {
             console.log(this.name + ' is setting the config');
             this.config = payload;
@@ -62,39 +61,62 @@ module.exports = NodeHelper.create({
     },
     
     createScheduleForModule: function(module){
-        if (!module.schedule.hasOwnProperty('from') || !module.schedule.hasOwnProperty('from')) {
-            console.log(this.name + ' cannot schedule the module ' + module.name + ' - check module_schedule');
-            return false;
-        }
+        var moduleSchedules = [];
+        var nextShowDate, nextHideDate;
 
-        console.log(this.name + ' is scheduling the module ' + module.name );
-
-        var showJob = this.createCronJobForModule(module, 'show');
-        if (!showJob) {
-            return false;
+        if (Array.isArray(module.schedule)) {
+            moduleSchedules = module.schedule;
+        } else {
+            moduleSchedules.push(module.schedule);
         }
-        var hideJob = this.createCronJobForModule(module, 'hide');
-        if (!hideJob) {
-            showJob.stop();
-            return false;
-        }
-
-        this.cronJobs.push({module: module, showJob: showJob, hideJob: hideJob});
         
-        var now = new Date();
-        if (showJob.nextDate().toDate() > now && hideJob.nextDate().toDate() > showJob.nextDate().toDate()) {
-            console.log(this.name + ' is hiding ' + module.name);
-            this.sendSocketNotification('HIDE_MODULE', module.id);
+        for (var i = 0; i < moduleSchedules.length; i++) {
+            var moduleSchedule = moduleSchedules[i];
+            if (!moduleSchedule.hasOwnProperty('from') || !moduleSchedule.hasOwnProperty('to')) {
+                console.log(this.name + ' cannot schedule' + module.name + ' - check module_schedule');
+                break;
+            }
+    
+            // Create cronnJobs
+            console.log(this.name + ' is scheduling ' + module.name + ' using \'' + moduleSchedule.from + '\' and \'' + moduleSchedule.to + '\'');
+            var showJob = this.createCronJobForModule(module, moduleSchedule.from, 'show');
+            if (!showJob) {
+                break;
+            }
+            var hideJob = this.createCronJobForModule(module, moduleSchedule.to, 'hide');
+            if (!hideJob) {
+                showJob.stop();
+                break;
+            }
+    
+            // Store cronJobs
+            this.cronJobs.push({module: module, schedule: moduleSchedule, showJob: showJob, hideJob: hideJob});
+            
+            // Store next dates
+            if (i === 0 || showJob.nextDate().toDate() < nextShowDate ) {
+                nextShowDate = showJob.nextDate().toDate();
+            }
+            if (i === 0 || hideJob.nextDate().toDate() < nextShowDate ) {
+                nextHideDate = hideJob.nextDate().toDate();
+            }
         }
-        console.log(this.name + ' has scheduled ' + module.name);
-        console.log(this.name + ' will next show ' + module.name + ' at ' + showJob.nextDate().toDate());
-        console.log(this.name + ' will next hide ' + module.name + ' at ' + hideJob.nextDate().toDate());
+        
+        if (nextHideDate && nextShowDate)
+        {
+            var now = new Date();
+            if (nextShowDate > now && nextHideDate > nextShowDate) {
+                console.log(this.name + ' is hiding ' + module.name);
+                this.sendSocketNotification('HIDE_MODULE', module.id);
+            }
+            console.log(this.name + ' has scheduled ' + module.name);
+            console.log(this.name + ' will next show ' + module.name + ' at ' + nextShowDate);
+            console.log(this.name + ' will next hide ' + module.name + ' at ' + nextHideDate);
+        }        
     },
 
-    createCronJobForModule: function(module, type) {
+    createCronJobForModule: function(module, moduleCronTime, type) {
         var self = this;
-        var moduleCronTime = (type === 'show' ? module.schedule.from : module.schedule.to );
-        
+
         if(type !== 'show' && type !== 'hide') {
             console.log(self.name + ' requires show/hide for type, not ' + type);
             return false;
@@ -104,18 +126,18 @@ module.exports = NodeHelper.create({
             var job = new CronJob({
                 cronTime: moduleCronTime, 
                 onTick: function() {
-                    console.log(self.name + ' needs to ' + type + ' ' + module.name);
+                    console.log(self.name + ' is sending notification to ' + type + ' ' + module.name);
                     self.sendSocketNotification(type.toUpperCase() + '_MODULE', module.id);
-                    console.log(self.name + ' will next ' + type + ' ' + module.name + ' at ' + this.nextDate().toDate());
+                    console.log(self.name + ' will next ' + type + ' ' + module.name + ' at ' + this.nextDate().toDate() + ' using \'' + moduleCronTime + '\'');
                 }, 
                 onComplete: function() {
-                    console.log(self.name + ' has completed the ' + type + ' job' + ' for ' + module.id);
+                    console.log(self.name + ' has completed the ' + type + ' job for ' + module.id + ' using \'' + moduleCronTime + '\'');
                 }, 
                 start: true
             });
             return job;
         } catch(ex) {
-            console.log(this.name + ' could not schedule ' + module.name + ' - invalid ' + type + ' expression: ' + moduleCronTime);
+            console.log(this.name + ' could not schedule ' + module.name + ' - invalid ' + type + ' expression: \'' + moduleCronTime + '\'');
         }
     }
 });
