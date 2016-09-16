@@ -1,8 +1,6 @@
 # MMM-ModuleScheduler
 A MagicMirror helper module to schedule when other modules should be shown or hidden.
 
-**Please note that this module is work in progress and has not yet been fully tested, so please do use with care.**
-
 ## Installation
 
 In your terminal, go to your MagicMirror's Module folder:
@@ -53,8 +51,10 @@ Modify the configuration for the modules you wish to control the display of usin
 **Note:**
 For more complex scheduling, multiple `from`and `to` expressions can be passed to the `module_schedule` option using an array, e.g. 
 ````javascript
-			// DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
-			module_schedule: [{from: '30 9 * * SAT', to: '30 22 * * SUN'}, {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}]
+			// DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, 
+			//THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
+			module_schedule: [{from: '30 9 * * SAT', to: '30 22 * * SUN'}, 
+							  {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}]
 ````
 
 ## Updating
