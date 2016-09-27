@@ -59,6 +59,7 @@ To dim a module, rather than hide it, add the `dimLevel` (as a percentage betwee
 			// DISPLAY BETWEEN 06:30 AND 22:30 AND DIM IT TO 25% AT ALL OTHER TIMES 
 			module_schedule: [{from: '30 9 * * *', to: '30 22 * * *', dimLevel: '25'}]
 ````
+**Note:** the module will show (full brightness) based on the `from` expression and then either hide (or dim if the `dimLevel` is set) based on the `to` expression. 
 
 ### Multiple Schedules
 For more complex scheduling, multiple `from`and `to` expressions can be passed to the `module_schedule` option using an array, e.g. 
