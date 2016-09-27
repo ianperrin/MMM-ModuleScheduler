@@ -1,5 +1,5 @@
 # MMM-ModuleScheduler
-A MagicMirror helper module to schedule when other modules should be shown or hidden.
+A MagicMirror helper module to schedule when other modules should be shown, hidden or dimmed.
 
 ![Example Scheduling](.github/example.gif)
 
@@ -50,7 +50,17 @@ Modify the configuration for the modules you wish to control the display of usin
 			}
 		},
 ````
-**Note:**
+
+## Configuration Examples
+
+### Dimming Modules
+To dim a module, rather than hide it, add the `dimLevel` (as a percentage between 0 and 100), to the `module_schedule` option. e.g.
+````javascript
+			// DISPLAY BETWEEN 06:30 AND 22:30 AND DIM IT TO 25% AT ALL OTHER TIMES 
+			module_schedule: [{from: '30 9 * * *', to: '30 22 * * *', dimLevel: '25'}]
+````
+
+### Multiple Schedules
 For more complex scheduling, multiple `from`and `to` expressions can be passed to the `module_schedule` option using an array, e.g. 
 ````javascript
 			// DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, 

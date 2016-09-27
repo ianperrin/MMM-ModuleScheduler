@@ -1,3 +1,4 @@
+/* global module, require */
 /* Magic Mirror
  * Node Helper: MMM-ModuleScheduler
  *
@@ -62,7 +63,7 @@ module.exports = NodeHelper.create({
     
     createScheduleForModule: function(module){
         var moduleSchedules = [];
-        var nextShowDate, nextHideDate;
+        var nextShowDate, nextHideDate, nextDimLevel;
 
         if (Array.isArray(module.schedule)) {
             moduleSchedules = module.schedule;
@@ -72,6 +73,7 @@ module.exports = NodeHelper.create({
         
         for (var i = 0; i < moduleSchedules.length; i++) {
             var moduleSchedule = moduleSchedules[i];
+	          nextDimLevel = 0;
             if (!moduleSchedule.hasOwnProperty('from') || !moduleSchedule.hasOwnProperty('to')) {
                 console.log(this.name + ' cannot schedule' + module.name + ' - check module_schedule');
                 break;
@@ -83,7 +85,7 @@ module.exports = NodeHelper.create({
             if (!showJob) {
                 break;
             }
-            var hideJob = this.createCronJobForModule(module, moduleSchedule.to, 'hide');
+            var hideJob = this.createCronJobForModule(module, moduleSchedule.to, (moduleSchedule.dimLevel ? 'dim' : 'hide'), moduleSchedule.dimLevel);
             if (!hideJob) {
                 showJob.stop();
                 break;
@@ -98,6 +100,7 @@ module.exports = NodeHelper.create({
             }
             if (i === 0 || hideJob.nextDate().toDate() < nextShowDate ) {
                 nextHideDate = hideJob.nextDate().toDate();
+	              nextDimLevel = moduleSchedule.dimLevel;
             }
         }
         
@@ -105,20 +108,25 @@ module.exports = NodeHelper.create({
         {
             var now = new Date();
             if (nextShowDate > now && nextHideDate > nextShowDate) {
-                console.log(this.name + ' is hiding ' + module.name);
-                this.sendSocketNotification('HIDE_MODULE', module.id);
+                if (nextDimLevel > 0) {
+                    console.log(this.name + ' is dimming ' + module.name);
+                    this.sendSocketNotification('DIM_MODULE', {identifier: module.id, dimLevel: nextDimLevel});
+                } else {
+                    console.log(this.name + ' is hiding ' + module.name);
+                    this.sendSocketNotification('HIDE_MODULE', {identifier: module.id});
+                }
             }
             console.log(this.name + ' has scheduled ' + module.name);
             console.log(this.name + ' will next show ' + module.name + ' at ' + nextShowDate);
-            console.log(this.name + ' will next hide ' + module.name + ' at ' + nextHideDate);
+            console.log(this.name + ' will next ' + (nextDimLevel ? 'dim' : 'hide') + ' ' + module.name + ' at ' + nextHideDate);
         }        
     },
 
-    createCronJobForModule: function(module, moduleCronTime, type) {
+    createCronJobForModule: function(module, moduleCronTime, action, level) {
         var self = this;
 
-        if(type !== 'show' && type !== 'hide') {
-            console.log(self.name + ' requires show/hide for type, not ' + type);
+        if(action !== 'show' && action !== 'hide' && action !== 'dim') {
+            console.log(self.name + ' requires show/hide/dim for type, not ' + action);
             return false;
         }
         
@@ -126,18 +134,19 @@ module.exports = NodeHelper.create({
             var job = new CronJob({
                 cronTime: moduleCronTime, 
                 onTick: function() {
-                    console.log(self.name + ' is sending notification to ' + type + ' ' + module.name);
-                    self.sendSocketNotification(type.toUpperCase() + '_MODULE', module.id);
-                    console.log(self.name + ' will next ' + type + ' ' + module.name + ' at ' + this.nextDate().toDate() + ' using \'' + moduleCronTime + '\'');
+                    console.log(self.name + ' is sending notification to ' + action + ' ' + module.name);
+                    self.sendSocketNotification(action.toUpperCase() + '_MODULE', {identifier: module.id, dimLevel: level});
+                    console.log(self.name + ' will next ' + action + ' ' + module.name + ' at ' + this.nextDate().toDate() + ' using \'' + moduleCronTime + '\'');
                 }, 
                 onComplete: function() {
-                    console.log(self.name + ' has completed the ' + type + ' job for ' + module.id + ' using \'' + moduleCronTime + '\'');
+                    console.log(self.name + ' has completed the ' + action + ' job for ' + module.id + ' using \'' + moduleCronTime + '\'');
                 }, 
                 start: true
             });
             return job;
         } catch(ex) {
-            console.log(this.name + ' could not schedule ' + module.name + ' - invalid ' + type + ' expression: \'' + moduleCronTime + '\'');
+            console.log(this.name + ' could not schedule ' + module.name + ' - check ' + action + ' expression: \'' + moduleCronTime + '\'');
         }
     }
 });
+
