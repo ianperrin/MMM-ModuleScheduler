@@ -57,7 +57,7 @@ Modify the configuration for the modules you wish to control the display of usin
 To dim a module, rather than hide it, add the `dimLevel` (as a percentage between 0 and 100), to the `module_schedule` option. e.g.
 ````javascript
 			// DISPLAY BETWEEN 06:30 AND 22:30 AND DIM IT TO 25% AT ALL OTHER TIMES 
-			module_schedule: [{from: '30 9 * * *', to: '30 22 * * *', dimLevel: '25'}]
+			module_schedule: [{from: '30 6 * * *', to: '30 22 * * *', dimLevel: '25'}]
 ````
 **Note:** the module will show (full brightness) based on the `from` expression and then either hide (or dim if the `dimLevel` is set) based on the `to` expression. 
 
