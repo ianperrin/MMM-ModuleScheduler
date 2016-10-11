@@ -10,7 +10,7 @@ var NodeHelper = require("node_helper");
 var CronJob = require("cron").CronJob;
 
 module.exports = NodeHelper.create({
-    cronJobs: [],
+    scheduledJobs: [],
 
     // Override start method.
     start: function() {
@@ -21,17 +21,16 @@ module.exports = NodeHelper.create({
     socketNotificationReceived: function(notification, payload) {
         console.log(this.name + ' received ' + notification);
 
-        if (notification === "SET_CONFIG") {
+        if (notification === "INITIALISE_SCHEDULER") {
             console.log(this.name + ' is setting the config');
             this.config = payload;
+            this.removeScheduledJobs();
             return true;
         }
-        
-        if (notification === "REMOVE_ALL_SCHEDULES") {
-            this.stopAllCronJobs();
+        if (notification === "CREATE_NOTIFICATION_SCHEDULE") {
+            this.createScheduleForNotifications(payload);
             return true;
         }
-
         if (notification === "CREATE_MODULE_SCHEDULE") {
             this.createScheduleForModule(payload);
             return true;
@@ -39,18 +38,21 @@ module.exports = NodeHelper.create({
         }
     },
     
-    stopAllCronJobs: function() {
-        console.log(this.name + ' is removing all schedules');
-        for (var i = 0; i < this.cronJobs.length; i++) {
-            var cronJob = this.cronJobs[i];
-            if( typeof cronJob.showJob === 'object') {
-                this.stopCronJob(cronJob.showJob);
+    removeScheduledJobs: function() {
+        console.log(this.name + ' is removing all scheduled jobs');
+        for (var i = 0; i < this.scheduledJobs.length; i++) {
+            var scheduledJob = this.scheduledJobs[i];
+            if( typeof scheduledJob.showJob === 'object') {
+                this.stopCronJob(scheduledJob.showJob);
             }
-            if( typeof cronJob.hideJob === 'object') {
-                this.stopCronJob(cronJob.hideJob);
+            if( typeof scheduledJob.hideJob === 'object') {
+                this.stopCronJob(scheduledJob.hideJob);
+            }
+            if( typeof scheduledJob.notificationJob === 'object') {
+                this.stopCronJob(scheduledJob.notificationJob);
             }
         }
-        this.cronJobs.length = 0;
+        this.scheduledJobs.length = 0;
     },
     
     stopCronJob: function(cronJob){
@@ -60,7 +62,67 @@ module.exports = NodeHelper.create({
             console.log(this.name + ' could not stop cronJob');
         }  
     },
+
+    createScheduleForNotifications: function(notification_schedule){
+        var notificationSchedules = [];
+
+        if (Array.isArray(notification_schedule)) {
+            notificationSchedules = notification_schedule;
+        } else {
+            notificationSchedules.push(notification_schedule);
+        }
+
+        for (var i = 0; i < notificationSchedules.length; i++) {
+            var notificationSchedule = notificationSchedules[i];
+
+            if (!notificationSchedule.hasOwnProperty('schedule') || !notificationSchedule.hasOwnProperty('notification')) {
+                console.log(this.name + ' cannot schedule ' + notificationSchedule + ' - check notification_schedule');
+                break;
+            }
     
+            // Create cronJobs
+            console.log(this.name + ' is scheduling ' + notificationSchedule.notification + ' using \'' + notificationSchedule.schedule);
+            var notificationJob = this.createCronJobForNotification(notificationSchedule.notification, notificationSchedule.schedule, notificationSchedule.payload);
+            if (!notificationJob) {
+                break;
+            }
+            
+            // Store scheduledJobs
+            this.scheduledJobs.push({notificationJob: notificationJob});
+            
+            console.log(this.name + ' has scheduled ' + notificationSchedule.notification);
+            console.log(this.name + ' will next send ' + notificationSchedule.notification + ' at ' + notificationJob.nextDate().toDate());
+
+        }
+
+    },
+
+    createCronJobForNotification: function(notificationId, notificationCronTime, notificationPayload) {
+        var self = this;
+
+        try {
+            var job = new CronJob({
+                cronTime: notificationCronTime, 
+                onTick: function() {
+                    console.log(self.name + ' is sending ' + notificationId + ' notification');
+                    if (notificationPayload) {
+                        self.sendSocketNotification('SEND_NOTIFICATION', {notification: notificationId, payload: notificationPayload});
+                    } else {
+                        self.sendSocketNotification('SEND_NOTIFICATION', notificationId);
+                    }
+                    console.log(self.name + ' will next send ' + notificationId + ' notification at ' + this.nextDate().toDate() + ' using \'' + notificationCronTime + '\'');
+                }, 
+                onComplete: function() {
+                    console.log(self.name + ' has completed the send ' + notificationId + ' notification job using \'' + notificationCronTime + '\'');
+                }, 
+                start: true
+            });
+            return job;
+        } catch(ex) {
+            console.log(this.name + ' could not schedule ' + notificationId + ' notification - check expression: \'' + notificationCronTime + '\'');
+        }
+    },
+
     createScheduleForModule: function(module){
         var moduleSchedules = [];
         var nextShowDate, nextHideDate, nextDimLevel;
@@ -79,7 +141,7 @@ module.exports = NodeHelper.create({
                 break;
             }
     
-            // Create cronnJobs
+            // Create cronJobs
             console.log(this.name + ' is scheduling ' + module.name + ' using \'' + moduleSchedule.from + '\' and \'' + moduleSchedule.to + '\' with dim level ' + moduleSchedule.dimLevel);
             var showJob = this.createCronJobForModule(module, moduleSchedule.from, 'show');
             if (!showJob) {
@@ -91,8 +153,8 @@ module.exports = NodeHelper.create({
                 break;
             }
     
-            // Store cronJobs
-            this.cronJobs.push({module: module, schedule: moduleSchedule, showJob: showJob, hideJob: hideJob});
+            // Store scheduledJobs
+            this.scheduledJobs.push({module: module, schedule: moduleSchedule, showJob: showJob, hideJob: hideJob});
             
             // Store next dates
             if (i === 0 || showJob.nextDate().toDate() < nextShowDate ) {
@@ -149,4 +211,3 @@ module.exports = NodeHelper.create({
         }
     }
 });
-

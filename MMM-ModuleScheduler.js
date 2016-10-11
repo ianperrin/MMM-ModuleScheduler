@@ -9,22 +9,23 @@ Module.register("MMM-ModuleScheduler",{
 	// Module config defaults.
 	defaults: {
 		schedulerClass: 'scheduler',
-		transitionInterval: 1000
+		animationSpeed: 1000
 	},
 
 	// Define start sequence.
 	start: function() {
 		Log.info("Starting module: " + this.name);
-		this.sendSocketNotification('SET_CONFIG', this.config);
+		this.sendSocketNotification('INITIALISE_SCHEDULER', this.config);
 	},
 	
 	notificationReceived: function(notification, payload, sender) {
 		var self = this;
 		if (notification === 'DOM_OBJECTS_CREATED') {
-			// Reset
-			self.sendSocketNotification('REMOVE_ALL_SCHEDULES');
-			
-			// Create schedules
+			// Create notification schedules
+			if (this.config.notification_schedule) {
+				this.sendSocketNotification('CREATE_NOTIFICATION_SCHEDULE', this.config.notification_schedule);
+			}
+			// Create module schedules
 			MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
 				Log.log(self.name + ' wants to schedule the display of ' + module.name );
 				if (typeof module.config.module_schedule === 'object') {
@@ -40,6 +41,12 @@ Module.register("MMM-ModuleScheduler",{
 		if (notification === 'SHOW_MODULE' || notification === 'HIDE_MODULE' || notification === 'DIM_MODULE') {
 			Log.log(this.name + ' received a ' + notification + ' notification for ' + payload.identifier );
 			this.setModuleDisplay(payload.identifier, notification, (payload.dimLevel ? payload.dimLevel : '25'));
+			return;
+		}
+		if (notification === 'SEND_NOTIFICATION') {
+			Log.log(this.name + ' received a request to send ' + payload + ' notification' );
+			this.sendNotification(payload.notification, payload.payload);
+			return;
 		}
 	},
 	
@@ -53,14 +60,14 @@ Module.register("MMM-ModuleScheduler",{
 				
 				if (action === 'SHOW_MODULE') {
 					moduleDiv.style.filter = 'brightness(100%)';
-					module.show(self.config.transitionInterval, function() {
+					module.show(self.config.animationSpeed, function() {
 						Log.log(self.name + ' has shown ' + identifier );
 					});
 					return true;
 				}
 				
 				if (action === 'HIDE_MODULE') {
-					module.hide(self.config.transitionInterval, function() {
+					module.hide(self.config.animationSpeed, function() {
 						Log.log(self.name + ' has hidden ' + identifier );
 					});
 					return true;
