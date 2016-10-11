@@ -72,15 +72,16 @@ module.exports = NodeHelper.create({
         }
         
         for (var i = 0; i < moduleSchedules.length; i++) {
+            console.log(module.id + ' schedule ' + i);
             var moduleSchedule = moduleSchedules[i];
-	          nextDimLevel = 0;
+
             if (!moduleSchedule.hasOwnProperty('from') || !moduleSchedule.hasOwnProperty('to')) {
                 console.log(this.name + ' cannot schedule' + module.name + ' - check module_schedule');
                 break;
             }
     
             // Create cronnJobs
-            console.log(this.name + ' is scheduling ' + module.name + ' using \'' + moduleSchedule.from + '\' and \'' + moduleSchedule.to + '\'');
+            console.log(this.name + ' is scheduling ' + module.name + ' using \'' + moduleSchedule.from + '\' and \'' + moduleSchedule.to + '\' with dim level ' + moduleSchedule.dimLevel);
             var showJob = this.createCronJobForModule(module, moduleSchedule.from, 'show');
             if (!showJob) {
                 break;
@@ -100,7 +101,7 @@ module.exports = NodeHelper.create({
             }
             if (i === 0 || hideJob.nextDate().toDate() < nextShowDate ) {
                 nextHideDate = hideJob.nextDate().toDate();
-	              nextDimLevel = moduleSchedule.dimLevel;
+                nextDimLevel = moduleSchedule.dimLevel;
             }
         }
         
