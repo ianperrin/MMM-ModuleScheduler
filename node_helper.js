@@ -72,7 +72,6 @@ module.exports = NodeHelper.create({
         }
         
         for (var i = 0; i < moduleSchedules.length; i++) {
-            console.log(module.id + ' schedule ' + i);
             var moduleSchedule = moduleSchedules[i];
 
             if (!moduleSchedule.hasOwnProperty('from') || !moduleSchedule.hasOwnProperty('to')) {
