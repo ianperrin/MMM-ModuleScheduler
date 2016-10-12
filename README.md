@@ -81,6 +81,28 @@ Multiple `notification_schedule` definitions can be added using an array, e.g.
     },
 ````
 
+### Scheduling actions to control your MagicMirror, Pi and monitor/screen
+Used in conjunction with [MMM-Remote-Control](https://github.com/Jopyth/MMM-Remote-Control) module, the `notification_schedule` definitions can create schedules to control your MagicMirror, Pi and monitor/screen, e.g.
+
+````javascript
+    {
+        module: 'MMM-ModuleScheduler',
+		config: {
+			notification_schedule: [
+				// TURN THE MONITOR/SCREEN ON AT 07:30 EVERY DAY
+				{notification: 'REMOTE_ACTION', schedule: '30 7 * * *', payload: {action: "MONITORON"}},
+				// TURN THE MONITOR/SCREEN OFF AT 22:30 EVERY DAY
+				{notification: 'REMOTE_ACTION', schedule: '30 22 * * *', payload: {action: "MONITOROFF"}},
+				// RESTART THE MAGICMIRROR PROCESS AT 2am EVERY SUNDAY
+				{notification: 'REMOTE_ACTION', schedule: '0 2 * * SUN', payload: {action: "RESTART"}}
+			]
+		}
+    },
+````
+**Notes** 
+* A full list of remote actions available for controlling your MagicMirror, Pi and monitor/screen are available in the [MMM-Remote-Control module documentation](https://github.com/Jopyth/MMM-Remote-Control#list-of-actions)
+* If you simply want to hide and show modules, it is recommended to use the module display scheduling options defined below, rather than the `SHOW` and `HIDE` remote actions. 
+
 ### Scheduling Module Display
 To schedule when a module is shown (or hidden) by the Magic Mirror, modify the configuration for that module so that it includes the `classes` and `module_schedule` options. e.g. 
 ````javascript
