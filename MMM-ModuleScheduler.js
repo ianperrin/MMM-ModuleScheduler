@@ -20,11 +20,14 @@ Module.register("MMM-ModuleScheduler",{
 	
 	notificationReceived: function(notification, payload, sender) {
 		var self = this;
-		if (notification === 'DOM_OBJECTS_CREATED') {
+		if (notification === 'ALL_MODULES_STARTED') {
 			// Create notification schedules
 			if (this.config.notification_schedule) {
 				this.sendSocketNotification('CREATE_NOTIFICATION_SCHEDULE', this.config.notification_schedule);
 			}
+			return;
+		}
+		if (notification === 'DOM_OBJECTS_CREATED') {
 			// Create module schedules
 			MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
 				Log.log(self.name + ' wants to schedule the display of ' + module.name );
@@ -34,7 +37,9 @@ Module.register("MMM-ModuleScheduler",{
 					Log.error( module.name + ' is configured to be scheduled, but the module_schedule option is undefined' );
 				}
 			});
+			return;
 		}
+		
 	},
 
 	socketNotificationReceived: function(notification, payload) {
