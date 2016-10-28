@@ -9,7 +9,9 @@ Module.register("MMM-ModuleScheduler",{
 	// Module config defaults.
 	defaults: {
 		schedulerClass: 'scheduler',
-		animationSpeed: 1000
+		animationSpeed: 1000,
+		notification_schedule: [],
+		global_schedule: []
 	},
 
 	// Define start sequence.
@@ -20,7 +22,6 @@ Module.register("MMM-ModuleScheduler",{
 	
 	notificationReceived: function(notification, payload, sender) {
 		var self = this;
-		Log.info(sender);
 		if (sender === undefined && notification === 'ALL_MODULES_STARTED') {
 			// Create notification schedules
 			if (this.config.notification_schedule) {
@@ -29,6 +30,10 @@ Module.register("MMM-ModuleScheduler",{
 			return;
 		}
 		if (sender === undefined && notification === 'DOM_OBJECTS_CREATED') {
+			// Create global schedules
+			if (typeof this.config.global_schedule === 'object') {
+				this.sendSocketNotification('CREATE_GLOBAL_SCHEDULE', this.config.global_schedule);
+			}
 			// Create module schedules
 			MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
 				Log.log(self.name + ' wants to schedule the display of ' + module.name );
@@ -44,50 +49,59 @@ Module.register("MMM-ModuleScheduler",{
 	},
 
 	socketNotificationReceived: function(notification, payload) {
+		var self = this;
 		if (notification === 'SHOW_MODULE' || notification === 'HIDE_MODULE' || notification === 'DIM_MODULE') {
 			Log.log(this.name + ' received a ' + notification + ' notification for ' + payload.identifier );
-			this.setModuleDisplay(payload.identifier, notification, (payload.dimLevel ? payload.dimLevel : '25'));
+			MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
+				if (payload.identifier === module.identifier){
+					self.setModuleDisplay(module, notification, (payload.dimLevel ? payload.dimLevel : '25'));
+					return;
+				}
+			});
+		}
+		if (notification === 'SHOW_ALL_MODULES' || notification === 'HIDE_ALL_MODULES' || notification === 'DIM_ALL_MODULES') {
+			Log.log(this.name + ' received a ' + notification + ' notification');
+			MM.getModules().exceptModule(this).enumerate(function(module) {
+				self.setModuleDisplay(module, notification.replace('_ALL_MODULES', '_MODULE'), (payload ? payload : '25'));
+			});
 			return;
 		}
 		if (notification === 'SEND_NOTIFICATION') {
-			Log.log(this.name + ' received a request to send ' + payload + ' notification' );
+			Log.log(this.name + ' received a request to send a ' + payload.notification + ' notification' );
 			this.sendNotification(payload.notification, payload.payload);
 			return;
 		}
 	},
 	
-	setModuleDisplay: function(identifier, action, brightness){
+	setModuleDisplay: function(module, action, brightness){
 		var self = this;
-		MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
-			if (module.identifier === identifier){
-				
-				Log.log(self.name + ' processing the ' + action + ' request for ' + identifier );
-				var moduleDiv = document.getElementById(identifier);
-				
-				if (action === 'SHOW_MODULE') {
-					moduleDiv.style.filter = 'brightness(100%)';
-					module.show(self.config.animationSpeed, function() {
-						Log.log(self.name + ' has shown ' + identifier );
-					});
-					return true;
-				}
-				
-				if (action === 'HIDE_MODULE') {
-					module.hide(self.config.animationSpeed, function() {
-						Log.log(self.name + ' has hidden ' + identifier );
-					});
-					return true;
-				}
-				
-				if (action === 'DIM_MODULE') {
-					moduleDiv.style.filter = 'brightness(' + brightness + '%)';
-					Log.log(self.name + ' has dimmed ' + identifier + ' to ' + brightness + '%' );
-					return true;
-				}
-				
+		Log.log(this.name + ' is processing the ' + action + (action === 'DIM_MODULE' ? ' (' + brightness + '%)' : '') + ' request for ' + module.identifier );
+
+		var moduleDiv = document.getElementById(module.identifier);
+		
+		if (action === 'SHOW_MODULE') {
+			module.show(self.config.animationSpeed, function() {
+				moduleDiv.style.filter = 'brightness(100%)';
+				Log.log(self.name + ' has shown ' + module.identifier );
+			});
+			return true;
+		}
+		
+		if (action === 'HIDE_MODULE') {
+			module.hide(self.config.animationSpeed, function() {
+				Log.log(self.name + ' has hidden ' + module.identifier );
+			});
+			return true;
+		}
+		
+		if (action === 'DIM_MODULE') {
+			if (moduleDiv) {
+				moduleDiv.style.filter = 'brightness(' + brightness + '%)';
+				Log.log(self.name + ' has dimmed ' + module.identifier + ' to ' + brightness + '%' );
+				return true;
 			}
-			return false;
-		});		
+		}
+		return false;
 	}
 });
 
