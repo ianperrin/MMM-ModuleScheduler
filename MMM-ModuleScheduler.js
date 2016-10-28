@@ -59,11 +59,21 @@ Module.register("MMM-ModuleScheduler",{
 				}
 			});
 		}
-		if (notification === 'SHOW_ALL_MODULES' || notification === 'HIDE_ALL_MODULES' || notification === 'DIM_ALL_MODULES') {
-			Log.log(this.name + ' received a ' + notification + ' notification');
-			MM.getModules().exceptModule(this).enumerate(function(module) {
-				self.setModuleDisplay(module, notification.replace('_ALL_MODULES', '_MODULE'), (payload ? payload : '25'));
-			});
+		if (notification === 'SHOW_MODULES' || notification === 'HIDE_MODULES' || notification === 'DIM_MODULES') {
+			Log.log(this.name + ' received a ' + notification + ' notification' + (payload.groupClass ? ' for class ' + payload.groupClass : ''));
+			var action = notification.replace('_MODULES', '_MODULE');
+			var brightness = (payload.dimLevel ? payload.dimLevel : '25');
+			if (payload.groupClass) {
+				// Set the display of a GROUP of modules with class
+				MM.getModules().exceptModule(this).withClass(payload.groupClass).enumerate(function(module) {
+					self.setModuleDisplay(module, action, brightness);
+				});
+			} else {
+				// Set the display of ALL modules
+				MM.getModules().exceptModule(this).enumerate(function(module) {
+					self.setModuleDisplay(module, action, brightness);
+				});
+			}
 			return;
 		}
 		if (notification === 'SEND_NOTIFICATION') {

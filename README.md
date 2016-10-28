@@ -35,7 +35,7 @@ Add the module to the modules array in the `config/config.js` file:
 ## Config Options
 | **Option** | **Default** | **Description** |
 | --- | --- | --- |
-| `schedulerClass` | 'scheduler' | **Optional** The name of the class which should be used to identify those modules which have a schedule. |
+| `schedulerClass` | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule. |
 | `animationSpeed` | 1000 | **Optional** The speed of the show and hide animations in milliseconds |
 | `notification_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications)  |
 | `global_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)  |
@@ -110,22 +110,43 @@ Used in conjunction with [MMM-Remote-Control](https://github.com/Jopyth/MMM-Remo
 To schedule when all modules are shown (or hidden) by the Magic Mirror, add a `global_schedule` definition to the MMM-ModuleScheduler config, e.g.
 ````javascript
     {
-    {
         module: 'MMM-ModuleScheduler',
         config: {
-            global_schedule: [
-                // SHOW ALL MODULES AT 06:00 AND HIDE AT 22:00 EVERY DAY
-                {from: '0 6 * * *', to: '0 22 * * *' },
-            ]
+            // SHOW ALL MODULES AT 06:00 AND HIDE AT 22:00 EVERY DAY
+            global_schedule: {from: '0 6 * * *', to: '0 22 * * *' },
         }
     },
 ````
+#### Group Schedules
+To apply a schedule to a group of modules, add the `class` option to the `global_schedule` definition, e.g.
+````javascript
+    {
+        module: 'MMM-ModuleScheduler',
+        config: {
+            // SHOW MODULES WITH THE CLASS 'daytime_scheduler' AT 06:00 AND HIDE AT 22:00 EVERY DAY
+            global_schedule: {from: '0 6 * * *', to: '0 22 * * *', groupClass: 'daytime_scheduler'},
+        }
+    },
+    {
+        module: 'clock',
+        position: 'top_left',
+        classes: 'daytime_scheduler'
+    }
+    {
+        module: 'compliments',
+        position: 'lower_third',
+        classes: 'daytime_scheduler'
+    },
+
+````
+**Notes** 
+* Modules scheduled as a group, only need the `groupClass` adding to the `classes` option in their config. The `schedulerClass` can be omitted unless indiviudal schedules also exist.
 
 #### Individual Module Schedules
 To schedule when an individual module is shown (or hidden) by the Magic Mirror, modify the configuration for that module so that it includes the `classes` and `module_schedule` options. e.g. 
 ````javascript
     {
-        module: 'clock',
+        module: 'calendar',
         header: 'US Holidays',
         position: 'top_left',
         classes: 'scheduler',
@@ -145,40 +166,61 @@ To schedule when an individual module is shown (or hidden) by the Magic Mirror, 
 * `from` is required and determines when the module will be shown. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
 * `to` is required and determines when the module will be hidden. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
 
-### Dimming Modules
-To dim a module, rather than hide it, set the `dimLevel` option (as a percentage between 0 and 100), to the `module_schedule` definition. e.g.
+#### Dimming Modules
+To dim modules, rather than hide them, add the `dimLevel` option (as a percentage between 0 and 100) to the `global_schedule` and `module_schedule` definitions. e.g.
 ````javascript
+    {
+        module: 'MMM-ModuleScheduler',
+        config: {
+            // SHOW ALL MODULES AT 06:00 AND DIM THEM TO 40% AT 22:00
+            global_schedule: {from: '0 6 * * *', to: '0 22 * * *', dimLevel: '40' },
+        }
+    },
     {
         module: 'clock',
         position: 'top_left',
         classes: 'scheduler',
         config: {
-            // DISPLAY BETWEEN 06:30 AND 22:30 AND DIM IT TO 25% AT ALL OTHER TIMES 
+            // SHOW THE CLOCK AT 06:30 AND DIM IT TO 25% AT 22:30 
             module_schedule: {from: '30 6 * * *', to: '30 22 * * *', dimLevel: '25'}
         }
     },
 ````
 **Note:** 
-* The module will be shown (full brightness) based on the `from` expression
-* The will then either be hidden (or dimmed if the `dimLevel` is set) based on the `to` expression. 
+* The modules will be shown (full brightness) based on the `from` expression
+* The modules will then either be dimmed (if the `dimLevel` option is set) based on the `to` expression. 
+* Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
 
-### Multiple Schedules
-For more complex scheduling, multiple `module_schedule` definitions can be added using an array, e.g. 
+#### Multiple Schedules
+For more complex scheduling, multiple `global_schedule` and `module_schedule` definitions can be added using an array, e.g. 
 ````javascript
+    {
+        module: 'MMM-ModuleScheduler',
+        config: {
+            global_schedule: [
+                // SHOW MODULES WITH THE CLASS 'morning_scheduler' AT 06:00 AND HIDE AT 09:00 EVERY DAY
+                {from: '0 6 * * *', to: '0 9 * * *', groupClass: 'morning_scheduler'},
+                // SHOW MODULES WITH THE CLASS 'evening_scheduler' AT 17:00 AND HIDE AT 23:00 EVERY DAY
+                {from: '0 17 * * *', to: '0 22 * * *', groupClass: 'evening_scheduler'},
+            ]
+        }
+    },
     {
         module: 'clock',
         position: 'top_left',
         classes: 'scheduler',
         config: {
             // DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, 
-            //THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
+            // THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
             module_schedule: [
                 {from: '30 9 * * SAT', to: '30 22 * * SUN'}, 
-                 {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}
+                {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}
             ]
         }
     },
 ````
+**Note:** 
+* Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
 
 ## Updating
 
