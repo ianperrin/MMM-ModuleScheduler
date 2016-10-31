@@ -6,6 +6,10 @@
  * MIT Licensed.
  */
 Module.register("MMM-ModuleScheduler",{
+	
+	// Set the minimum MagicMirror module version for this module.
+	requiresVersion: "2.0.0",
+	
 	// Module config defaults.
 	defaults: {
 		schedulerClass: 'scheduler',
@@ -60,7 +64,7 @@ Module.register("MMM-ModuleScheduler",{
 			});
 		}
 		if (notification === 'SHOW_MODULES' || notification === 'HIDE_MODULES' || notification === 'DIM_MODULES') {
-			Log.log(this.name + ' received a ' + notification + ' notification' + (payload.groupClass ? ' for class ' + payload.groupClass : ''));
+			Log.log(this.name + ' received a ' + notification + ' notification for ' + (payload.groupClass ? payload.groupClass + ' modules' : 'all modules'));
 			var action = notification.replace('_MODULES', '_MODULE');
 			var brightness = (payload.dimLevel ? payload.dimLevel : '25');
 			if (payload.groupClass) {
@@ -85,6 +89,7 @@ Module.register("MMM-ModuleScheduler",{
 	
 	setModuleDisplay: function(module, action, brightness){
 		var self = this;
+		var options = {lockString: this.identifier};
 		Log.log(this.name + ' is processing the ' + action + (action === 'DIM_MODULE' ? ' (' + brightness + '%)' : '') + ' request for ' + module.identifier );
 
 		var moduleDiv = document.getElementById(module.identifier);
@@ -93,14 +98,14 @@ Module.register("MMM-ModuleScheduler",{
 			module.show(self.config.animationSpeed, function() {
 				moduleDiv.style.filter = 'brightness(100%)';
 				Log.log(self.name + ' has shown ' + module.identifier );
-			});
+			}, options);
 			return true;
 		}
 		
 		if (action === 'HIDE_MODULE') {
 			module.hide(self.config.animationSpeed, function() {
 				Log.log(self.name + ' has hidden ' + module.identifier );
-			});
+			}, options);
 			return true;
 		}
 		
