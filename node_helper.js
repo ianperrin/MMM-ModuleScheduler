@@ -217,7 +217,6 @@ module.exports = NodeHelper.create({
 
     createGlobalSchedules: function(global_schedule){
         var globalSchedules = [];
-        var nextShowDate, nextHideDate, nextDimLevel, nextGroupClass;
 
         if (Array.isArray(global_schedule)) {
             globalSchedules = global_schedule;
@@ -227,6 +226,7 @@ module.exports = NodeHelper.create({
         
         for (var i = 0; i < globalSchedules.length; i++) {
             var globalSchedule = globalSchedules[i];
+            var groupOrAll = (globalSchedule.groupClass ? globalSchedule.groupClass : 'all');
 
             if (!globalSchedule.hasOwnProperty('from') || !globalSchedule.hasOwnProperty('to')) {
                 console.log(this.name + ' cannot create schedule for ' + JSON.stringify(globalSchedule) + ' - check global_schedule');
@@ -234,7 +234,7 @@ module.exports = NodeHelper.create({
             }
     
             // Create cronJobs
-            console.log(this.name + ' is creating a global schedule using \'' + globalSchedule.from + '\' and \'' + globalSchedule.to + '\' with dim level ' + globalSchedule.dimLevel);
+            console.log(this.name + ' is creating a global schedule for ' + groupOrAll + ' modules using \'' + globalSchedule.from + '\' and \'' + globalSchedule.to + '\' with dim level ' + globalSchedule.dimLevel);
             var showJob = this.createGlobalCronJob(globalSchedule.from, 'show', null, globalSchedule.groupClass);
             if (!showJob) {
                 break;
@@ -248,34 +248,24 @@ module.exports = NodeHelper.create({
             // Store scheduledJobs
             this.scheduledJobs.push({schedule: globalSchedule, showJob: showJob, hideJob: hideJob});
             
-            // Store next dates
-            if (i === 0 || showJob.nextDate().toDate() < nextShowDate ) {
-                nextShowDate = showJob.nextDate().toDate();
-            }
-            if (i === 0 || hideJob.nextDate().toDate() < nextShowDate ) {
-                nextHideDate = hideJob.nextDate().toDate();
-                nextDimLevel = globalSchedule.dimLevel;
-                nextGroupClass = globalSchedule.groupClass;
-            }
-        }
-        
-        if (nextHideDate && nextShowDate)
-        {
+            // Check next dates
+            var nextShowDate = showJob.nextDate().toDate();
+            var nextHideDate = hideJob.nextDate().toDate();
             var now = new Date();
-            var groupOrAll = (nextGroupClass ? nextGroupClass : 'all');
             if (nextShowDate > now && nextHideDate > nextShowDate) {
-                if (nextDimLevel > 0) {
+                if (globalSchedule.dimLevel > 0) {
                     console.log(this.name + ' is dimming ' + groupOrAll + ' modules');
-                    this.sendSocketNotification('DIM_MODULES', {dimLevel: nextDimLevel, "groupClass": nextGroupClass});
+                    this.sendSocketNotification('DIM_MODULES', {dimLevel: globalSchedule.dimLevel, "groupClass": globalSchedule.groupClass});
                 } else {
                     console.log(this.name + ' is hiding ' + groupOrAll + ' modules');
-                    this.sendSocketNotification('HIDE_MODULES', {"groupClass": nextGroupClass});
+                    this.sendSocketNotification('HIDE_MODULES', {"groupClass": globalSchedule.groupClass});
                 }
             }
-            console.log(this.name + ' has created global schedules');
+            console.log(this.name + ' has created the global schedule for ' + groupOrAll + ' modules');
             console.log(this.name + ' will next show ' + groupOrAll + ' modules at ' + nextShowDate);
-            console.log(this.name + ' will next ' + (nextDimLevel ? 'dim' : 'hide') + ' ' + groupOrAll + ' modules at ' + nextHideDate);
-        }        
+            console.log(this.name + ' will next ' + (globalSchedule.dimLevel ? 'dim' : 'hide') + ' ' + groupOrAll + ' modules at ' + nextHideDate);
+            
+        }
     },
 
     createGlobalCronJob: function(globalCronTime, action, level, groupClass) {
