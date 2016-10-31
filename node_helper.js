@@ -235,11 +235,11 @@ module.exports = NodeHelper.create({
     
             // Create cronJobs
             console.log(this.name + ' is creating a global schedule for ' + groupOrAll + ' modules using \'' + globalSchedule.from + '\' and \'' + globalSchedule.to + '\' with dim level ' + globalSchedule.dimLevel);
-            var showJob = this.createGlobalCronJob(globalSchedule.from, 'show', null, globalSchedule.groupClass);
+            var showJob = this.createGlobalCronJob(globalSchedule.from, 'show', null, globalSchedule.groupClass, globalSchedule.ignoreModules);
             if (!showJob) {
                 break;
             }
-            var hideJob = this.createGlobalCronJob(globalSchedule.to, (globalSchedule.dimLevel ? 'dim' : 'hide'), globalSchedule.dimLevel, globalSchedule.groupClass);
+            var hideJob = this.createGlobalCronJob(globalSchedule.to, (globalSchedule.dimLevel ? 'dim' : 'hide'), globalSchedule.dimLevel, globalSchedule.groupClass, globalSchedule.ignoreModules);
             if (!hideJob) {
                 showJob.stop();
                 break;
@@ -255,10 +255,10 @@ module.exports = NodeHelper.create({
             if (nextShowDate > now && nextHideDate > nextShowDate) {
                 if (globalSchedule.dimLevel > 0) {
                     console.log(this.name + ' is dimming ' + groupOrAll + ' modules');
-                    this.sendSocketNotification('DIM_MODULES', {dimLevel: globalSchedule.dimLevel, "groupClass": globalSchedule.groupClass});
+                    this.sendSocketNotification('DIM_MODULES', {dimLevel: globalSchedule.dimLevel, "groupClass": globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
                 } else {
                     console.log(this.name + ' is hiding ' + groupOrAll + ' modules');
-                    this.sendSocketNotification('HIDE_MODULES', {"groupClass": globalSchedule.groupClass});
+                    this.sendSocketNotification('HIDE_MODULES', {"groupClass": globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
                 }
             }
             console.log(this.name + ' has created the global schedule for ' + groupOrAll + ' modules');
@@ -268,7 +268,7 @@ module.exports = NodeHelper.create({
         }
     },
 
-    createGlobalCronJob: function(globalCronTime, action, level, groupClass) {
+    createGlobalCronJob: function(globalCronTime, action, level, groupClass, ignoreModules) {
         var self = this;
 
         if(action !== 'show' && action !== 'hide' && action !== 'dim') {
@@ -281,7 +281,7 @@ module.exports = NodeHelper.create({
                 cronTime: globalCronTime, 
                 onTick: function() {
                     console.log(self.name + ' is sending notification to ' + action + ' ' + (groupClass ? groupClass : 'all') + ' modules');
-                    self.sendSocketNotification(action.toUpperCase() + '_MODULES', {dimLevel: level, "groupClass": groupClass} );
+                    self.sendSocketNotification(action.toUpperCase() + '_MODULES', {dimLevel: level, groupClass: groupClass, ignoreModules: ignoreModules} );
                     console.log(self.name + ' will next ' + action + ' ' + (groupClass ? groupClass : 'all') + ' modules at ' + this.nextDate().toDate() + ' using \'' + globalCronTime + '\'');
                 }, 
                 onComplete: function() {

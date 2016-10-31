@@ -118,7 +118,7 @@ To schedule when all modules are shown (or hidden) by the Magic Mirror, add a `g
     },
 ````
 #### Group Schedules
-To apply a schedule to a group of modules, add the `class` option to the `global_schedule` definition, e.g.
+To apply a schedule to a group of modules, add the `groupClass` option to the `global_schedule` definition, e.g.
 ````javascript
     {
         module: 'MMM-ModuleScheduler',
@@ -140,7 +140,7 @@ To apply a schedule to a group of modules, add the `class` option to the `global
 
 ````
 **Notes** 
-* Modules scheduled as a group, only need the `groupClass` adding to the `classes` option in their config. The `schedulerClass` can be omitted unless indiviudal schedules also exist.
+* Modules scheduled as a group, only need the `groupClass` adding to the `classes` option in their config. The `schedulerClass` option can be omitted unless indiviudal schedules also exist.
 
 #### Individual Module Schedules
 To schedule when an individual module is shown (or hidden) by the Magic Mirror, modify the configuration for that module so that it includes the `classes` and `module_schedule` options. e.g. 
@@ -221,6 +221,20 @@ For more complex scheduling, multiple `global_schedule` and `module_schedule` de
 ````
 **Note:** 
 * Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
+
+#### Ignoring Modules
+To ignore modules from being shown, hidden or dimmed by a global schedules, add the `ignoreModules` option to the `global_schedule` definition e.g. 
+````javascript
+    {
+        module: 'MMM-ModuleScheduler',
+        config: {
+            // SHOW ALL MODULES EXCEPT clock AND calender BETWEEN 06:00 AND 22:00
+            global_schedule: {from: '0 6 * * *', to: '0 22 * * *', ignoreModules: ['clock', 'calendar'] },
+        }
+    },
+````
+**Note:** 
+* Modules are ignored based on their name, as defined in the config file. If multiple instances of a single module are defined in the `config.js` file, all instances will be ignored using this option.
 
 ## Updating
 

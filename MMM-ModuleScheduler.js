@@ -65,18 +65,27 @@ Module.register("MMM-ModuleScheduler",{
 		}
 		if (notification === 'SHOW_MODULES' || notification === 'HIDE_MODULES' || notification === 'DIM_MODULES') {
 			Log.log(this.name + ' received a ' + notification + ' notification for ' + (payload.groupClass ? payload.groupClass + ' modules' : 'all modules'));
+			// Get all modules except this one
+			var modules = MM.getModules().exceptModule(this);
+			// Restrict to group of modules with specified class
+			if (payload.groupClass) {
+				modules = modules.withClass(payload.groupClass);
+			}
+			// Ignore specified modules
+			if (payload.ignoreModules) {
+				modules = modules.filter(function (module) {
+                    if (payload.ignoreModules.indexOf(module.name) === -1) {
+                        return true;
+                    }
+					Log.log(self.name + ' is ignoring ' + module.name + ' from the ' + notification + ' notification for ' + (payload.groupClass ? payload.groupClass + ' modules' : 'all modules'));
+                    return false;
+                });
+			}
+			// Process the notification request
 			var action = notification.replace('_MODULES', '_MODULE');
 			var brightness = (payload.dimLevel ? payload.dimLevel : '25');
-			if (payload.groupClass) {
-				// Set the display of a GROUP of modules with class
-				MM.getModules().exceptModule(this).withClass(payload.groupClass).enumerate(function(module) {
-					self.setModuleDisplay(module, action, brightness);
-				});
-			} else {
-				// Set the display of ALL modules
-				MM.getModules().exceptModule(this).enumerate(function(module) {
-					self.setModuleDisplay(module, action, brightness);
-				});
+			for (var i = 0; i < modules.length; i++) {
+				this.setModuleDisplay(modules[i], action, brightness);
 			}
 			return;
 		}
