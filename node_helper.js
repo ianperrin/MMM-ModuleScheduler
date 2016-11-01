@@ -1,4 +1,5 @@
 /* global module, require */
+/* jshint node: true, esversion: 6 */
 /* Magic Mirror
  * Node Helper: MMM-ModuleScheduler
  *
