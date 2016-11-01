@@ -2,9 +2,9 @@ language: node_js
 node_js:
   - "6"
 before_install:
-  - git clone https://github.com/MichMich/MagicMirror
-  - cd MagicMirror
-  - npm install
-  - mv ../MMM-ModuleScheduler modules && cd modules/MMM-ModuleScheduler
+  - cd ../../ && git clone https://github.com/MichMich/MagicMirror
+  - mv ianperrin/MMM-ModuleScheduler MagicMirror/modules
+  - cd MagicMirror && npm install express
+  - cd modules/MMM-ModuleScheduler
 before_script:
   - npm install grunt-cli -g
