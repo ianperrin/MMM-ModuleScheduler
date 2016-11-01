@@ -26,7 +26,7 @@ cd MMM-ModuleScheduler
 
 Install the dependencies:
 ````
-npm install
+npm install --production
 ````
 
 Add the module to the modules array in the `config/config.js` file:
