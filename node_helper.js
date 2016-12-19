@@ -18,6 +18,7 @@ const SCHEDULE_TYPE_NOTIFICATION = "notification";
 const JOB_ACTION_SHOW = "show";
 const JOB_ACTION_HIDE = "hide";
 const JOB_ACTION_DIM = "dim";
+const JOB_ACTION_SEND = "send";
 
 module.exports = NodeHelper.create({
     scheduledJobs: [],
@@ -87,7 +88,7 @@ module.exports = NodeHelper.create({
 
             // Create cronJobs
             console.log(this.name + " is scheduling " + notificationSchedule.notification + " using \"" + notificationSchedule.schedule);
-            var notificationJob = this.createCronJobForNotification(notificationSchedule.notification, notificationSchedule.schedule, notificationSchedule.payload);
+            var notificationJob = this.createCronJob(SCHEDULE_TYPE_NOTIFICATION, notificationSchedule.schedule, JOB_ACTION_SEND, {target: notificationSchedule.notification, payload: notificationSchedule.payload});
             if (!notificationJob) {
                 break;
             }
@@ -98,32 +99,6 @@ module.exports = NodeHelper.create({
             console.log(this.name + " has scheduled " + notificationSchedule.notification);
             console.log(this.name + " will next send " + notificationSchedule.notification + " at " + notificationJob.nextDate().toDate());
 
-        }
-    },
-
-    createCronJobForNotification: function(notificationId, notificationCronTime, notificationPayload) {
-        var self = this;
-
-        try {
-            var job = new CronJob({
-                cronTime: notificationCronTime,
-                onTick: function() {
-                    console.log(self.name + " is sending " + notificationId + " notification");
-                    if (notificationPayload) {
-                        self.sendSocketNotification("SEND_NOTIFICATION", {notification: notificationId, payload: notificationPayload});
-                    } else {
-                        self.sendSocketNotification("SEND_NOTIFICATION", notificationId);
-                    }
-                    console.log(self.name + " will next send " + notificationId + " notification at " + this.nextDate().toDate() + " using \"" + notificationCronTime + "\"");
-                },
-                onComplete: function() {
-                    console.log(self.name + " has completed the send " + notificationId + " notification job using \"" + notificationCronTime + "\"");
-                },
-                start: true
-            });
-            return job;
-        } catch(ex) {
-            console.log(this.name + " could not schedule " + notificationId + " notification - check expression: \"" + notificationCronTime + "\"");
         }
     },
 
@@ -139,12 +114,13 @@ module.exports = NodeHelper.create({
 
             // Create cronJobs
             console.log(this.name + " is scheduling " + module.name + " using \"" + moduleSchedule.from + "\" and \"" + moduleSchedule.to + "\" with dim level " + moduleSchedule.dimLevel);
-            var showJob = this.createCronJobForModule(module, moduleSchedule.from, JOB_ACTION_SHOW);
+            var showJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.from, JOB_ACTION_SHOW, {target: module.id});
+
             if (!showJob) {
                 break;
             }
             var hideJobAction = (moduleSchedule.dimLevel ? JOB_ACTION_DIM : JOB_ACTION_HIDE);
-            var hideJob = this.createCronJobForModule(module, moduleSchedule.to, hideJobAction, moduleSchedule.dimLevel);
+            var hideJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.to, hideJobAction, {target: module.id, dimLevel: moduleSchedule.dimLevel});
             if (!hideJob) {
                 showJob.stop();
                 break;
@@ -169,40 +145,15 @@ module.exports = NodeHelper.create({
             if (nextShowDate > now && nextHideDate > nextShowDate) {
                 if (nextDimLevel > 0) {
                     console.log(this.name + " is dimming " + module.name);
-                    this.sendSocketNotification("DIM_MODULE", {identifier: module.id, dimLevel: nextDimLevel});
+                    this.sendSocketNotification("DIM_MODULE", {target: module.id, dimLevel: nextDimLevel});
                 } else {
                     console.log(this.name + " is hiding " + module.name);
-                    this.sendSocketNotification("HIDE_MODULE", {identifier: module.id});
+                    this.sendSocketNotification("HIDE_MODULE", {target: module.id});
                 }
             }
             console.log(this.name + " has scheduled " + module.name);
             console.log(this.name + " will next show " + module.name + " at " + nextShowDate);
             console.log(this.name + " will next " + (nextDimLevel ? JOB_ACTION_DIM : JOB_ACTION_HIDE) + " " + module.name + " at " + nextHideDate);
-        }
-    },
-
-    createCronJobForModule: function(module, moduleCronTime, action, level) {
-        var self = this;
-
-        // Validate Action
-        if (!this.isValidAction(action)) { return false; }
-
-        try {
-            var job = new CronJob({
-                cronTime: moduleCronTime,
-                onTick: function() {
-                    console.log(self.name + " is sending notification to " + action + " " + module.name);
-                    self.sendSocketNotification(action.toUpperCase() + "_MODULE", {identifier: module.id, dimLevel: level});
-                    console.log(self.name + " will next " + action + " " + module.name + " at " + this.nextDate().toDate() + " using \"" + moduleCronTime + "\"");
-                },
-                onComplete: function() {
-                    console.log(self.name + " has completed the " + action + " job for " + module.id + " using \"" + moduleCronTime + "\"");
-                },
-                start: true
-            });
-            return job;
-        } catch(ex) {
-            console.log(this.name + " could not schedule " + module.name + " - check " + action + " expression: \"" + moduleCronTime + "\"");
         }
     },
 
@@ -218,12 +169,12 @@ module.exports = NodeHelper.create({
 
             // Create cronJobs
             console.log(this.name + " is creating a global schedule for " + groupOrAll + " modules using \"" + globalSchedule.from + "\" and \"" + globalSchedule.to + "\" with dim level " + globalSchedule.dimLevel);
-            var showJob = this.createGlobalCronJob(globalSchedule.from, JOB_ACTION_SHOW, null, globalSchedule.groupClass, globalSchedule.ignoreModules);
+            var showJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.from, JOB_ACTION_SHOW, {target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
             if (!showJob) {
                 break;
             }
             var hideJobAction = (globalSchedule.dimLevel ? JOB_ACTION_DIM : JOB_ACTION_HIDE);
-            var hideJob = this.createGlobalCronJob(globalSchedule.to, hideJobAction, globalSchedule.dimLevel, globalSchedule.groupClass, globalSchedule.ignoreModules);
+            var hideJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.to, hideJobAction, {dimLevel: globalSchedule.dimLevel, target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
             if (!hideJob) {
                 showJob.stop();
                 break;
@@ -239,10 +190,10 @@ module.exports = NodeHelper.create({
             if (nextShowDate > now && nextHideDate > nextShowDate) {
                 if (globalSchedule.dimLevel > 0) {
                     console.log(this.name + " is dimming " + groupOrAll + " modules");
-                    this.sendSocketNotification("DIM_MODULES", {dimLevel: globalSchedule.dimLevel, "groupClass": globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
+                    this.sendSocketNotification("DIM_MODULES", {dimLevel: globalSchedule.dimLevel, target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
                 } else {
                     console.log(this.name + " is hiding " + groupOrAll + " modules");
-                    this.sendSocketNotification("HIDE_MODULES", {"groupClass": globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
+                    this.sendSocketNotification("HIDE_MODULES", {target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules});
                 }
             }
             console.log(this.name + " has created the global schedule for " + groupOrAll + " modules");
@@ -251,32 +202,55 @@ module.exports = NodeHelper.create({
         }
     },
 
-    createGlobalCronJob: function(globalCronTime, action, level, groupClass, ignoreModules) {
+    /**
+     * Returns a CronJob object that has been scheduled to trigger the
+     * specified action based on the supplied cronTime and options
+     *
+     * @param  type     the type of schedule to be created (either global, module or notification)
+     * @param  cronTime a cron expression which determines when the job will fire
+     * @param  action   the action which should be performed (either show, hide, dim or send)
+     * @param  options  an object containing the options for the job (e.g. target, dimLevel, ignoreModules)
+     * @return      the scheduled cron job
+     * @see         CronJob
+     */
+    createCronJob: function(type, cronTime, action, options) {
         var self = this;
 
         // Validate Action
         if (!this.isValidAction(action)) { return false; }
 
+        // Build notification
+        var notification = action.toUpperCase();
+        notification += (type === SCHEDULE_TYPE_NOTIFICATION ? "_NOTIFICATION" : "_MODULE");
+        notification += (type === SCHEDULE_TYPE_GLOBAL ? "S" : "");
+
         try {
             var job = new CronJob({
-                cronTime: globalCronTime,
+                cronTime: cronTime,
                 onTick: function() {
-                    console.log(self.name + " is sending notification to " + action + " " + (groupClass ? groupClass : "all") + " modules");
-                    self.sendSocketNotification(action.toUpperCase() + "_MODULES", {dimLevel: level, groupClass: groupClass, ignoreModules: ignoreModules} );
-                    console.log(self.name + " will next " + action + " " + (groupClass ? groupClass : "all") + " modules at " + this.nextDate().toDate() + " using \"" + globalCronTime + "\"");
+                    console.log(self.name + " is sending " + notification + " to " + options.target);
+                    self.sendSocketNotification(notification, options);
+                    console.log(self.name + " will next send " + notification + " to " + options.target + " at " + this.nextDate().toDate() + " based on \"" + cronTime + "\"");
                 },
                 onComplete: function() {
-                    console.log(self.name + " has completed the " + action + " job for " + (groupClass ? groupClass : "all") + " modules using \"" + globalCronTime + "\"");
+                    console.log(self.name + " has completed the " + action + " job for " + options.target + " based on \"" + cronTime + "\"");
                 },
                 start: true
             });
             return job;
         } catch(ex) {
-            console.log(this.name + " could not create global schedule - check " + action + " expression: \"" + globalCronTime + "\"");
+            console.log(this.name + " could not create " + type + " schedule - check " + action + " expression: \"" + cronTime + "\"");
         }
+
     },
 
-    // Helper functions
+    /**
+     * Returns either the original array or a new array holding the supplied value
+     *
+     * @param  arrayOrString     either an existing array or value to be used to create the new array
+     * @return      an array
+     * @see         Array
+     */
     getOrMakeArray: function(arrayOrString) {
         if (Array.isArray(arrayOrString)) {
             return arrayOrString;
@@ -285,6 +259,14 @@ module.exports = NodeHelper.create({
         }
     },
 
+    /**
+     * Validates a schedule definition by determining whether it has the required
+     * properties defined
+     *
+     * @param  schedule_definition  The schedule definition to be validated
+     * @param  type                 the type of schedule to be created (either global, module or notification)
+     * @return      true or false
+     */
     isValidSchedule: function(schedule_definition, type) {
         var requiredProperties = this.getRequiredPropertiesForType(type);
         if(!requiredProperties) {
@@ -301,14 +283,26 @@ module.exports = NodeHelper.create({
         return true;
     },
 
+    /**
+     * Determine whether a string is a valid action
+     *
+     * @param  action  The string to be validated
+     * @return      true or false
+     */
     isValidAction: function(action) {
-        if(action !== JOB_ACTION_SHOW && action !== JOB_ACTION_HIDE && action !== JOB_ACTION_DIM) {
-            console.log(this.name + " cannot create schedule. Expected show/hide/dim, not " + action);
+        if(action !== JOB_ACTION_SHOW && action !== JOB_ACTION_HIDE && action !== JOB_ACTION_DIM && action !== JOB_ACTION_SEND) {
+            console.log(this.name + " cannot create schedule. Expected show/hide/dim/send, not " + action);
             return false;
         }
         return true;
     },
 
+    /**
+     * Gets an array of names for the properties required by the given schedule type
+     *
+     * @param  type  The scheduled type for which properties are required
+     * @return      An Array of property names
+     */
     getRequiredPropertiesForType: function(type) {
         if (type === SCHEDULE_TYPE_MODULE || type === SCHEDULE_TYPE_GLOBAL || type === SCHEDULE_TYPE_GROUP) {
             return ["from", "to"];

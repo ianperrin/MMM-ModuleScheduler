@@ -30,7 +30,7 @@ exports.isValidSchedule = function (test) {
     test.ok(!helper.isValidSchedule({show: "0 5 * * *", hide: "0 9 * * *"}, "group"), "expected false");
     test.ok(!helper.isValidSchedule({}, "group"), "expected false");
 
-    // Group schedules
+    // Module schedules
     test.ok(helper.isValidSchedule({from: "0 5 * * *", to: "0 9 * * *"}, "module"), "expected true");
     test.ok(!helper.isValidSchedule({from: "0 5 * * *", hide: "0 9 * * *"}, "module"), "expected false");
     test.ok(!helper.isValidSchedule({show: "0 5 * * *", to: "0 9 * * *"}, "module"), "expected false");
@@ -59,10 +59,11 @@ exports.getRequiredPropertiesForType = function (test) {
 
 // isValidAction
 exports.isValidAction = function (test) {
-    test.expect(4);
+    test.expect(5);
     test.ok(helper.isValidAction("show"), "expected true");
     test.ok(helper.isValidAction("hide"), "expected true");
     test.ok(helper.isValidAction("dim"), "expected true");
+    test.ok(helper.isValidAction("send"), "expected true");
     test.ok(!helper.isValidAction("anything else"), "expected false");
     test.done();
 };

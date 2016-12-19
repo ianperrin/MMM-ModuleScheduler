@@ -14,8 +14,8 @@ Module.register("MMM-ModuleScheduler",{
     defaults: {
         schedulerClass: "scheduler",
         animationSpeed: 1000,
-        notification_schedule: [],
-        global_schedule: []
+        notification_schedule: false,
+        global_schedule: false
     },
 
     // Define start sequence.
@@ -54,21 +54,21 @@ Module.register("MMM-ModuleScheduler",{
     socketNotificationReceived: function(notification, payload) {
         var self = this;
         if (notification === "SHOW_MODULE" || notification === "HIDE_MODULE" || notification === "DIM_MODULE") {
-            Log.log(this.name + " received a " + notification + " notification for " + payload.identifier );
+            Log.log(this.name + " received a " + notification + " notification for " + payload.target );
             MM.getModules().exceptModule(this).withClass(this.config.schedulerClass).enumerate(function(module) {
-                if (payload.identifier === module.identifier){
+                if (payload.target === module.identifier){
                     self.setModuleDisplay(module, notification, (payload.dimLevel ? payload.dimLevel : "25"));
                     return;
                 }
             });
         }
         if (notification === "SHOW_MODULES" || notification === "HIDE_MODULES" || notification === "DIM_MODULES") {
-            Log.log(this.name + " received a " + notification + " notification for " + (payload.groupClass ? payload.groupClass + " modules" : "all modules"));
+            Log.log(this.name + " received a " + notification + " notification for " + (payload.target ? payload.target : "all")  + " modules");
             // Get all modules except this one
             var modules = MM.getModules().exceptModule(this);
             // Restrict to group of modules with specified class
-            if (payload.groupClass) {
-                modules = modules.withClass(payload.groupClass);
+            if (payload.target) {
+                modules = modules.withClass(payload.target);
             }
             // Ignore specified modules
             if (payload.ignoreModules) {
@@ -76,7 +76,7 @@ Module.register("MMM-ModuleScheduler",{
                     if (payload.ignoreModules.indexOf(module.name) === -1) {
                         return true;
                     }
-                    Log.log(self.name + " is ignoring " + module.name + " from the " + notification + " notification for " + (payload.groupClass ? payload.groupClass + " modules" : "all modules"));
+                    Log.log(self.name + " is ignoring " + module.name + " from the " + notification + " notification for " + (payload.target ? payload.target : "all")  + " modules");
                     return false;
                 });
             }
@@ -89,8 +89,8 @@ Module.register("MMM-ModuleScheduler",{
             return;
         }
         if (notification === "SEND_NOTIFICATION") {
-            Log.log(this.name + " received a request to send a " + payload.notification + " notification" );
-            this.sendNotification(payload.notification, payload.payload);
+            Log.log(this.name + " received a request to send a " + payload.target + " notification" );
+            this.sendNotification(payload.target, payload.payload);
             return;
         }
     },
