@@ -15,7 +15,8 @@ Module.register("MMM-ModuleScheduler",{
         schedulerClass: "scheduler",
         animationSpeed: 1000,
         notification_schedule: false,
-        global_schedule: false
+        global_schedule: false,
+        debug: true,
     },
 
     // Define start sequence.
