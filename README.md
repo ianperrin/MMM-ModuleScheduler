@@ -43,6 +43,7 @@ Add the module to the modules array in the `config/config.js` file:
 | `animationSpeed` | 1000 | **Optional** The speed of the show and hide animations in milliseconds |
 | `notification_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications)  |
 | `global_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)  |
+| `uselock` | `true` | **Optional** If set to `false`, the scheduler does not lock the hidden modules. Other modules can then be used to show the modules even if they are hidden by the scheduler. |
 | `debug` | `true` | **Optional** Outputs messages to the console/log when set to `true` |
 
 ## Config Examples
