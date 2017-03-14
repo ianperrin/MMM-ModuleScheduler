@@ -99,10 +99,9 @@ Module.register("MMM-ModuleScheduler",{
 
     setModuleDisplay: function(module, action, brightness){
         var self = this;
+		var options = "";
 		if (self.config.uselock){
-			var options = {lockString: this.identifier};
-		} else {
-			var options = "";
+			options = {lockString: this.identifier};
 		}
         Log.log(this.name + " is processing the " + action + (action === "DIM_MODULE" ? " (" + brightness + "%)" : "") + " request for " + module.identifier );
 
