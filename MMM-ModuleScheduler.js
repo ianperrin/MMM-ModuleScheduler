@@ -17,6 +17,7 @@ Module.register("MMM-ModuleScheduler",{
         notification_schedule: false,
         global_schedule: false,
         debug: true,
+		uselock: true,
     },
 
     // Define start sequence.
@@ -98,7 +99,11 @@ Module.register("MMM-ModuleScheduler",{
 
     setModuleDisplay: function(module, action, brightness){
         var self = this;
-        var options = {lockString: this.identifier};
+		if (self.config.uselock){
+			var options = {lockString: this.identifier};
+		} else {
+			var options = "";
+		}
         Log.log(this.name + " is processing the " + action + (action === "DIM_MODULE" ? " (" + brightness + "%)" : "") + " request for " + module.identifier );
 
         var moduleDiv = document.getElementById(module.identifier);
