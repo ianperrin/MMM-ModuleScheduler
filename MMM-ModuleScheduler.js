@@ -102,27 +102,28 @@ Module.register("MMM-ModuleScheduler",{
         Log.log(this.name + " is processing the " + action + (action === "DIM_MODULE" ? " (" + brightness + "%)" : "") + " request for " + module.identifier );
 
         var moduleDiv = document.getElementById(module.identifier);
-
-        if (action === "SHOW_MODULE") {
-            module.show(self.config.animationSpeed, function() {
-                moduleDiv.style.filter = "brightness(100%)";
-                Log.log(self.name + " has shown " + module.identifier );
-            }, options);
-            return true;
-        }
-
-        if (action === "HIDE_MODULE") {
-            module.hide(self.config.animationSpeed, function() {
-                Log.log(self.name + " has hidden " + module.identifier );
-            }, options);
-            return true;
-        }
-
-        if (action === "DIM_MODULE") {
-            if (moduleDiv) {
-                moduleDiv.style.filter = "brightness(" + brightness + "%)";
-                Log.log(self.name + " has dimmed " + module.identifier + " to " + brightness + "%" );
+        if (moduleDiv != null) {
+            if (action === "SHOW_MODULE") {
+                module.show(self.config.animationSpeed, function() {
+                    moduleDiv.style.filter = "brightness(100%)";
+                    Log.log(self.name + " has shown " + module.identifier );
+                }, options);
                 return true;
+            }
+
+            if (action === "HIDE_MODULE") {
+                module.hide(self.config.animationSpeed, function() {
+                    Log.log(self.name + " has hidden " + module.identifier );
+                }, options);
+                return true;
+            }
+
+            if (action === "DIM_MODULE") {
+                if (moduleDiv) {
+                    moduleDiv.style.filter = "brightness(" + brightness + "%)";
+                    Log.log(self.name + " has dimmed " + module.identifier + " to " + brightness + "%" );
+                    return true;
+                }
             }
         }
         return false;
