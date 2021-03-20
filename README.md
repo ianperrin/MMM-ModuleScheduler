@@ -3,7 +3,7 @@
 A [MagicMirror²](https://magicmirror.builders) helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.
 
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://raw.githubusercontent.com/ianperrin/MMM-ModuleScheduler/master/LICENSE)
-[![Build Status](https://img.shields.io/travis/ianperrin/MMM-ModuleScheduler.svg?maxAge=2592000)](https://travis-ci.org/ianperrin/MMM-ModuleScheduler)
+![Test Status](https://github.com/ianperrin/MMM-ModuleScheduler/actions/workflows/node.js.yml/badge.svg)
 [![Known Vulnerabilities](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler/badge.svg)](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler)
 
 ![Example Scheduling](.github/example.gif)
@@ -53,6 +53,21 @@ Add the module to the modules array in the `config/config.js` file:
 | `debug`                 | `true`      | **Optional** Outputs messages to the console/log when set to `true`                                                                                              |
 
 ## Config Examples
+
+Sending notifications
+
+- [Basic example](#scheduling-notifications)
+- [Multiple notifications](#scheduling-multiple-notifications)
+- [Remote control notifications](#scheduling-actions-to-control-your-magicmirror-pi-and-monitorscreen)
+
+Module Display
+
+- [Hide or show all modules](#global-schedules)
+- [Hide or show a group of modules](#group-schedules)
+- [Hide or show individual modules](#individual-module-schedules)
+- [Dimming modules](#dimming-modules)
+- [Multiple schedules](#multiple-schedules)
+- [Ignoring Modules](#ignoring-modules)
 
 ### Scheduling Notifications
 
