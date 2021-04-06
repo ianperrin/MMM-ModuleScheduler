@@ -1,6 +1,6 @@
 const expect = require("chai").expect;
 const moduleAlias = require("module-alias");
-moduleAlias.addAlias("node_helper", "../../js/node_helper.js");
+moduleAlias.addAliases({ node_helper: "../../js/node_helper.js", logger: "../js/logger.js" });
 var Module = require("../node_helper.js");
 var helper = new Module();
 helper.setName("MMM-ModuleScheduler");
