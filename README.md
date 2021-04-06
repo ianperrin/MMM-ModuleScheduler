@@ -2,6 +2,7 @@
 
 A [MagicMirror²](https://magicmirror.builders) helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.
 
+[![Platform](https://img.shields.io/badge/platform-MagicMirror-informational)](https://MagicMirror.builders)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://raw.githubusercontent.com/ianperrin/MMM-ModuleScheduler/master/LICENSE)
 ![Test Status](https://github.com/ianperrin/MMM-ModuleScheduler/actions/workflows/node.js.yml/badge.svg)
 [![Known Vulnerabilities](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler/badge.svg)](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler)
