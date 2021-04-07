@@ -71,7 +71,7 @@ To schedule the sending of a notification to other modules, add a `notification_
 * `schedule` is required and determines when the notification will be sent. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
 * `payload` is optional and its contents will be determined by the module receiving the notification. 
 
-* When specifying your cron values you'll need to make sure that your values fall within the ranges. For instance, some cron's use a 0-7 range for the day of week where both 0 and 7 represent Sunday. We do not. And that is an optimisation.
+* When specifying your schedule values make sure that your values fall within the ranges below.
 
 
 | **Unit** | **Format** |
