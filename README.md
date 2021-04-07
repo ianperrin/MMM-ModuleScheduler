@@ -72,14 +72,17 @@ To schedule the sending of a notification to other modules, add a `notification_
 * `payload` is optional and its contents will be determined by the module receiving the notification. 
 
 * When specifying your cron values you'll need to make sure that your values fall within the ranges. For instance, some cron's use a 0-7 range for the day of week where both 0 and 7 represent Sunday. We do not. And that is an optimisation.
+
+
 | **Unit** | **Format** |
 | --- | --- |
-| Seconds | 0-59 |
-| Minutes | 0-59 |
-| Hours | 0-23 |
-| Day of Month | 1-31 |
-| Months | 0-11 (Jan-Dec) |
-| Day of Week | 0-6 (Sun-Sat) |
+| `Seconds` | 0-59 |
+| `Minutes` | 0-59 |
+| `Hours` | 0-23 |
+| `Day of Month` | 1-31 |
+| `Months` | 0-11 (Jan-Dec) |
+| `Day of Week` | 0-6 (Sun-Sat) |
+
 
 #### Scheduling Multiple Notifications
 Multiple `notification_schedule` definitions can be added using an array, e.g.
