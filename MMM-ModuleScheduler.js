@@ -1,3 +1,4 @@
+/* global Log, Module, MM */
 /* Magic Mirror
  * Module: MMM-ModuleScheduler
  *
