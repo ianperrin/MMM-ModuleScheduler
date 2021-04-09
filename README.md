@@ -100,7 +100,6 @@ To schedule the sending of a notification to other modules, add a `notification_
 
 * When specifying your schedule values make sure that your values fall within the ranges below.
 
-
 | **Unit**       | **Format**     |
 | -------------- | -------------- |
 | `Seconds`      | 0-59           |
@@ -109,7 +108,6 @@ To schedule the sending of a notification to other modules, add a `notification_
 | `Day of Month` | 1-31           |
 | `Months`       | 0-11 (Jan-Dec) |
 | `Day of Week`  | 0-6 (Sun-Sat)  |
-
 
 #### Scheduling Multiple Notifications
 
