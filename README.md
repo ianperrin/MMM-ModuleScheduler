@@ -44,16 +44,6 @@ Add the module to the modules array in the `config/config.js` file:
 ```
 
 ## Config Options
-<<<<<<< HEAD
-| **Option** | **Default** | **Description** |
-| --- | --- | --- |
-| `schedulerClass` | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule. |
-| `animationSpeed` | 1000 | **Optional** The speed of the show and hide animations in milliseconds |
-| `notification_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications)  |
-| `global_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)  |
-| `uselock` | `true` | **Optional** If set to `false`, the scheduler does not lock the hidden modules. Other modules can then be used to show the modules even if they are hidden by the scheduler. |
-| `debug` | `true` | **Optional** Outputs messages to the console/log when set to `true` |
-=======
 
 | **Option**              | **Default** | **Description**                                                                                                                                                  |
 | ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -61,8 +51,8 @@ Add the module to the modules array in the `config/config.js` file:
 | `animationSpeed`        | 1000        | **Optional** The speed of the show and hide animations in milliseconds                                                                                           |
 | `notification_schedule` |             | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications) |
 | `global_schedule`       |             | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)    |
+| `uselock`               | `true`      | **Optional** If set to `false`, scheduler don't lock the hidden modules. Other modules can then be used to show the modules if they are hidden by the scheduler. |
 | `debug`                 | `true`      | **Optional** Outputs messages to the console/log when set to `true`                                                                                              |
->>>>>>> 8156ec7dd3df6ba6a998e338c600f62258f664a0
 
 ## Config Examples
 
@@ -111,14 +101,14 @@ To schedule the sending of a notification to other modules, add a `notification_
 * When specifying your schedule values make sure that your values fall within the ranges below.
 
 
-| **Unit** | **Format** |
-| --- | --- |
-| `Seconds` | 0-59 |
-| `Minutes` | 0-59 |
-| `Hours` | 0-23 |
-| `Day of Month` | 1-31 |
-| `Months` | 0-11 (Jan-Dec) |
-| `Day of Week` | 0-6 (Sun-Sat) |
+| **Unit**       | **Format**     |
+| -------------- | -------------- |
+| `Seconds`      | 0-59           |
+| `Minutes`      | 0-59           |
+| `Hours`        | 0-23           |
+| `Day of Month` | 1-31           |
+| `Months`       | 0-11 (Jan-Dec) |
+| `Day of Week`  | 0-6 (Sun-Sat)  |
 
 
 #### Scheduling Multiple Notifications
@@ -136,7 +126,7 @@ Multiple `notification_schedule` definitions can be added using an array, e.g.
                 {notification: 'SHOW_ALERT', schedule: '17 45 * * *', payload: {type: "notification", title: 'Good afternoon!'}}
             ]
         }
-    },
+    }
 ```
 
 #### Scheduling actions to control your MagicMirror, Pi and monitor/screen
