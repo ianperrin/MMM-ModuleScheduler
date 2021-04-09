@@ -1,8 +1,10 @@
 # MMM-ModuleScheduler
+
 A [MagicMirror²](https://magicmirror.builders) helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.
 
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg?maxAge=2592000)](https://raw.githubusercontent.com/ianperrin/MMM-ModuleScheduler/master/LICENSE)
-[![Build Status](https://img.shields.io/travis/ianperrin/MMM-ModuleScheduler.svg?maxAge=2592000)](https://travis-ci.org/ianperrin/MMM-ModuleScheduler)
+[![Platform](https://img.shields.io/badge/platform-MagicMirror-informational)](https://MagicMirror.builders)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://raw.githubusercontent.com/ianperrin/MMM-ModuleScheduler/master/LICENSE)
+![Test Status](https://github.com/ianperrin/MMM-ModuleScheduler/actions/workflows/node.js.yml/badge.svg)
 [![Known Vulnerabilities](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler/badge.svg)](https://snyk.io/test/github/ianperrin/MMM-ModuleScheduler)
 
 ![Example Scheduling](.github/example.gif)
@@ -10,33 +12,39 @@ A [MagicMirror²](https://magicmirror.builders) helper module to schedule when m
 ## Installation
 
 In your terminal, go to your MagicMirror's Module folder:
-````
+
+```
 cd ~/MagicMirror/modules
-````
+```
 
 Clone this repository:
-````
+
+```
 git clone https://github.com/ianperrin/MMM-ModuleScheduler.git
-````
+```
 
 Go to the modules folder:
-````
+
+```
 cd MMM-ModuleScheduler
-````
+```
 
 Install the dependencies:
-````
+
+```
 npm install --production
-````
+```
 
 Add the module to the modules array in the `config/config.js` file:
-````javascript
+
+```javascript
     {
         module: 'MMM-ModuleScheduler'
     },
-````
+```
 
 ## Config Options
+<<<<<<< HEAD
 | **Option** | **Default** | **Description** |
 | --- | --- | --- |
 | `schedulerClass` | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule. |
@@ -45,31 +53,60 @@ Add the module to the modules array in the `config/config.js` file:
 | `global_schedule` |  | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)  |
 | `uselock` | `true` | **Optional** If set to `false`, the scheduler does not lock the hidden modules. Other modules can then be used to show the modules even if they are hidden by the scheduler. |
 | `debug` | `true` | **Optional** Outputs messages to the console/log when set to `true` |
+=======
+
+| **Option**              | **Default** | **Description**                                                                                                                                                  |
+| ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schedulerClass`        | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule.                                               |
+| `animationSpeed`        | 1000        | **Optional** The speed of the show and hide animations in milliseconds                                                                                           |
+| `notification_schedule` |             | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications) |
+| `global_schedule`       |             | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)    |
+| `debug`                 | `true`      | **Optional** Outputs messages to the console/log when set to `true`                                                                                              |
+>>>>>>> 8156ec7dd3df6ba6a998e338c600f62258f664a0
 
 ## Config Examples
 
+Sending notifications
+
+- [Basic example](#scheduling-notifications)
+- [Multiple notifications](#scheduling-multiple-notifications)
+- [Remote control notifications](#scheduling-actions-to-control-your-magicmirror-pi-and-monitorscreen)
+
+Module Display
+
+- [Hide or show all modules](#global-schedules)
+- [Hide or show a group of modules](#group-schedules)
+- [Hide or show individual modules](#individual-module-schedules)
+- [Dimming modules](#dimming-modules)
+- [Multiple schedules](#multiple-schedules)
+- [Ignoring Modules](#ignoring-modules)
+
 ### Scheduling Notifications
+
 To schedule the sending of a notification to other modules, add a `notification_schedule` definition to the MMM-ModuleScheduler config, e.g.
-````javascript
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
             // SHOW AN ALERT AT 09:30 EVERY DAY (see https://github.com/MichMich/MagicMirror/tree/develop/modules/default/alert)
             notification_schedule: {
-                notification: 'SHOW_ALERT', 
-                schedule: '30 9 * * *', 
+                notification: 'SHOW_ALERT',
+                schedule: '30 9 * * *',
                 payload: {
-                    type: "notification", 
+                    type: "notification",
                     title: 'Scheduled alert!'
                 }
             }
         }
     },
-````
-**Notes** 
-* `notification` is required and should be the identifier of the notification to be sent to all other modules. 
-* `schedule` is required and determines when the notification will be sent. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
-* `payload` is optional and its contents will be determined by the module receiving the notification. 
+```
+
+**Notes**
+
+- `notification` is required and should be the identifier of the notification to be sent to all other modules.
+- `schedule` is required and determines when the notification will be sent. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/).
+- `payload` is optional and its contents will be determined by the module receiving the notification.
 
 * When specifying your schedule values make sure that your values fall within the ranges below.
 
@@ -85,9 +122,10 @@ To schedule the sending of a notification to other modules, add a `notification_
 
 
 #### Scheduling Multiple Notifications
+
 Multiple `notification_schedule` definitions can be added using an array, e.g.
 
-````javascript
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -99,12 +137,13 @@ Multiple `notification_schedule` definitions can be added using an array, e.g.
             ]
         }
     },
-````
+```
 
 #### Scheduling actions to control your MagicMirror, Pi and monitor/screen
+
 Used in conjunction with [MMM-Remote-Control](https://github.com/Jopyth/MMM-Remote-Control) module, the `notification_schedule` definitions can create schedules to control your MagicMirror, Pi and monitor/screen, e.g.
 
-````javascript
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -118,16 +157,20 @@ Used in conjunction with [MMM-Remote-Control](https://github.com/Jopyth/MMM-Remo
             ]
         }
     },
-````
-**Notes** 
-* A full list of remote actions available for controlling your MagicMirror, Pi and monitor/screen are available in the [MMM-Remote-Control module documentation](https://github.com/Jopyth/MMM-Remote-Control#list-of-actions)
-* If you simply want to hide and show modules, it is recommended to use the module display scheduling options defined below, rather than the `SHOW` and `HIDE` remote actions. 
+```
+
+**Notes**
+
+- A full list of remote actions available for controlling your MagicMirror, Pi and monitor/screen are available in the [MMM-Remote-Control module documentation](https://github.com/Jopyth/MMM-Remote-Control#list-of-actions)
+- If you simply want to hide and show modules, it is recommended to use the module display scheduling options defined below, rather than the `SHOW` and `HIDE` remote actions.
 
 ### Scheduling Module Display
 
 #### Global Schedules
+
 To schedule when all modules are shown (or hidden) by the Magic Mirror, add a `global_schedule` definition to the MMM-ModuleScheduler config, e.g.
-````javascript
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -135,10 +178,13 @@ To schedule when all modules are shown (or hidden) by the Magic Mirror, add a `g
             global_schedule: {from: '0 6 * * *', to: '0 22 * * *' },
         }
     },
-````
+```
+
 #### Group Schedules
+
 To apply a schedule to a group of modules, add the `groupClass` option to the `global_schedule` definition, e.g.
-````javascript
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -157,13 +203,17 @@ To apply a schedule to a group of modules, add the `groupClass` option to the `g
         classes: 'daytime_scheduler'
     },
 
-````
-**Notes** 
-* Modules scheduled as a group, only need the `groupClass` adding to the `classes` option in their config. The `schedulerClass` option can be omitted unless indiviudal schedules also exist.
+```
+
+**Notes**
+
+- Modules scheduled as a group, only need the `groupClass` adding to the `classes` option in their config. The `schedulerClass` option can be omitted unless indiviudal schedules also exist.
 
 #### Individual Module Schedules
-To schedule when an individual module is shown (or hidden) by the Magic Mirror, modify the configuration for that module so that it includes the `classes` and `module_schedule` options. e.g. 
-````javascript
+
+To schedule when an individual module is shown (or hidden) by the Magic Mirror, modify the configuration for that module so that it includes the `classes` and `module_schedule` options. e.g.
+
+```javascript
     {
         module: 'calendar',
         header: 'US Holidays',
@@ -180,14 +230,18 @@ To schedule when an individual module is shown (or hidden) by the Magic Mirror, 
             ]
         }
     },
-````
-**Notes** 
-* `from` is required and determines when the module will be shown. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
-* `to` is required and determines when the module will be hidden. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/). 
+```
+
+**Notes**
+
+- `from` is required and determines when the module will be shown. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/).
+- `to` is required and determines when the module will be hidden. It should be a valid cron expression - see [crontab.guru](http://crontab.guru/).
 
 #### Dimming Modules
+
 To dim modules, rather than hide them, add the `dimLevel` option (as a percentage between 0 and 100) to the `global_schedule` and `module_schedule` definitions. e.g.
-````javascript
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -200,19 +254,23 @@ To dim modules, rather than hide them, add the `dimLevel` option (as a percentag
         position: 'top_left',
         classes: 'scheduler',
         config: {
-            // SHOW THE CLOCK AT 06:30 AND DIM IT TO 25% AT 22:30 
+            // SHOW THE CLOCK AT 06:30 AND DIM IT TO 25% AT 22:30
             module_schedule: {from: '30 6 * * *', to: '30 22 * * *', dimLevel: '25'}
         }
     },
-````
-**Note:** 
-* The modules will be shown (full brightness) based on the `from` expression
-* The modules will then either be dimmed (if the `dimLevel` option is set) based on the `to` expression. 
-* Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
+```
+
+**Note:**
+
+- The modules will be shown (full brightness) based on the `from` expression
+- The modules will then either be dimmed (if the `dimLevel` option is set) based on the `to` expression.
+- Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
 
 #### Multiple Schedules
-For more complex scheduling, multiple `global_schedule` and `module_schedule` definitions can be added using an array, e.g. 
-````javascript
+
+For more complex scheduling, multiple `global_schedule` and `module_schedule` definitions can be added using an array, e.g.
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -229,21 +287,25 @@ For more complex scheduling, multiple `global_schedule` and `module_schedule` de
         position: 'top_left',
         classes: 'scheduler',
         config: {
-            // DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS, 
-            // THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS 
+            // DISPLAY BETWEEN 09:30 ON SATURDAYS AND 22:30 ON SUNDAYS,
+            // THEN AGAIN BETWEEN 20:00 AND 23:00 ON TUESDAYS AND WEDNESDAYS
             module_schedule: [
-                {from: '30 9 * * SAT', to: '30 22 * * SUN'}, 
+                {from: '30 9 * * SAT', to: '30 22 * * SUN'},
                 {from: '0 20 * * 2-3', to: '0 23 * * 2-3'}
             ]
         }
     },
-````
-**Note:** 
-* Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
+```
+
+**Note:**
+
+- Take care when adding both `global_schedule` and `module_schedule` definitions as MMM-ModuleScheduler performs no validation that they will be compatible.
 
 #### Ignoring Modules
-To ignore modules from being shown, hidden or dimmed by a global schedules, add the `ignoreModules` option to the `global_schedule` definition e.g. 
-````javascript
+
+To ignore modules from being shown, hidden or dimmed by a global schedules, add the `ignoreModules` option to the `global_schedule` definition e.g.
+
+```javascript
     {
         module: 'MMM-ModuleScheduler',
         config: {
@@ -251,17 +313,19 @@ To ignore modules from being shown, hidden or dimmed by a global schedules, add 
             global_schedule: {from: '0 6 * * *', to: '0 22 * * *', ignoreModules: ['clock', 'calendar'] },
         }
     },
-````
-**Note:** 
-* Modules are ignored based on their name, as defined in the config file. If multiple instances of a single module are defined in the `config.js` file, all instances will be ignored using this option.
+```
+
+**Note:**
+
+- Modules are ignored based on their name, as defined in the config file. If multiple instances of a single module are defined in the `config.js` file, all instances will be ignored using this option.
 
 ## Updating
 
 To update the module to the latest version, use your terminal to go to your MMM-ModuleScheduler module folder and type the following command:
 
-````
+```
 git pull
-```` 
+```
 
-If you haven't changed the modules, this should work without any problems. 
+If you haven't changed the modules, this should work without any problems.
 Type `git status` to see your changes, if there are any, you can reset them with `git reset --hard`. After that, git pull should be possible.

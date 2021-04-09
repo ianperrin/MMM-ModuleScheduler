@@ -1,32 +1,42 @@
 {
-    "name": "MMM-ModuleScheduler",
-    "version": "1.4.0",
-    "description": "A MagicMirror helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.",
-    "main": "MMM-ModuleScheduler.js",
-    "scripts": {
-        "test": "grunt test"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/ianperrin/MMM-ModuleScheduler.git"
-    },
-    "keywords": [
-        "MagicMirror",
-        "Module",
-        "Scheduler"
-    ],
-    "author": "Ian Perrin",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/ianperrin/MMM-ModuleScheduler/issues"
-    },
-    "homepage": "https://github.com/ianperrin/MMM-ModuleScheduler#readme",
-    "dependencies": {
-        "cron": "^1.1.0"
-    },
-    "devDependencies": {
-        "grunt": "latest",
-        "grunt-contrib-jshint": "latest",
-        "grunt-contrib-nodeunit": "latest"
-    }
+	"name": "MMM-ModuleScheduler",
+	"version": "1.4.1",
+	"description": "A MagicMirror helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.",
+	"main": "MMM-ModuleScheduler.js",
+	"scripts": {
+		"test": "npm run test:unit && npm run test:prettier && npm run test:js",
+		"test:unit": "NODE_ENV=test mocha tests --recursive",
+		"test:prettier": "prettier --check **/*.{js,css,json,md,yml}",
+		"test:js": "eslint *.js tests/**/*.js --config .eslintrc.json",
+		"lint:prettier": "prettier --write **/*.{js,css,json,md,yml}",
+		"lint:js": "eslint *.js tests/**/*.js --config .eslintrc.json --fix"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ianperrin/MMM-ModuleScheduler.git"
+	},
+	"keywords": [
+		"MagicMirror",
+		"Module",
+		"Scheduler"
+	],
+	"author": "Ian Perrin",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/ianperrin/MMM-ModuleScheduler/issues"
+	},
+	"homepage": "https://github.com/ianperrin/MMM-ModuleScheduler#readme",
+	"devDependencies": {
+		"chai": "^4.2.0",
+		"eslint": "^7.15.0",
+		"eslint-config-prettier": "^7.0.0",
+		"eslint-plugin-jsdoc": "^30.7.8",
+		"eslint-plugin-prettier": "^3.2.0",
+		"mocha": "^8.2.1",
+		"module-alias": "^2.2.2",
+		"prettier": "^2.2.1"
+	},
+	"dependencies": {
+		"cron": "^1.8.2"
+	}
 }

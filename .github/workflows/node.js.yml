@@ -1,0 +1,48 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Tests
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+
+    steps:
+      - name: Checkout MagicMirror repo
+        uses: actions/checkout@v2
+        with:
+          repository: MichMich/MagicMirror
+          path: MagicMirror
+
+      - name: Checkout Module repo
+        uses: actions/checkout@v2
+        with:
+          path: MagicMirror/modules/MMM-ModuleScheduler
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install MagicMirror
+        run: |
+          cd MagicMirror
+          Xvfb :99 -screen 0 1024x768x16 &
+          export DISPLAY=:99
+          npm ci
+
+      - name: Run tests
+        run: |
+          cd MagicMirror/modules/MMM-ModuleScheduler
+          npm ci
+          npm run test

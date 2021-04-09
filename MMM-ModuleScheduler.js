@@ -16,6 +16,7 @@ Module.register("MMM-ModuleScheduler", {
 		global_schedule: false,
 		debug: true,
 		uselock: true,
+		debug: true
 	},
 
 	// Define start sequence.
