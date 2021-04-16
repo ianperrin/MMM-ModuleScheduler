@@ -40,13 +40,13 @@ Module.register("MMM-ModuleScheduler", {
 	},
 	socketNotificationReceived: function (notification, payload) {
 		// module schedule
-		if (notification === "SHOW_MODULE" || notification === "HIDE_MODULE" || notification === "DIM_MODULE") {
+		if (["SHOW_MODULE", "HIDE_MODULE", "DIM_MODULE"].includes(notification)) {
 			Log.log(this.name + " received a " + notification + " notification for " + payload.target);
 			this.executeModuleSchedule(payload, notification);
 			return;
 		}
 		// global schedule
-		if (notification === "SHOW_MODULES" || notification === "HIDE_MODULES" || notification === "DIM_MODULES") {
+		if (["SHOW_MODULES", "HIDE_MODULES", "DIM_MODULES"].includes(notification)) {
 			Log.log(this.name + " received a " + notification + " notification for " + (payload.target ? payload.target : "all") + " modules");
 			this.executeGlobalSchedule(payload, notification);
 			return;
