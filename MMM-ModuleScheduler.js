@@ -107,22 +107,18 @@ Module.register("MMM-ModuleScheduler", {
 
 		if (action === "SHOW_MODULE") {
 			module["show"](
-				this.config.animationSpeed, 
+				this.config.animationSpeed,
 				() => {
 					Log.log(this.name + " has shown " + module.identifier);
 					this.setModuleBrightness(module.identifier, 100);
-				}, 
+				},
 				options
 			);
 			return true;
 		}
 
 		if (action === "HIDE_MODULE") {
-			module.hide(
-				this.config.animationSpeed, 
-				Log.log(this.name + " has hidden " + module.identifier),
-				options
-			);
+			module.hide(this.config.animationSpeed, Log.log(this.name + " has hidden " + module.identifier), options);
 			return true;
 		}
 
