@@ -102,19 +102,16 @@ Module.register("MMM-ModuleScheduler", {
 	},
 
 	setModuleDisplay: function (module, action, brightness) {
-		var self = this;
 		const options = this.config.uselock ? { lockString: this.identifier } : "";
 		Log.log(this.name + " is processing the " + action + (action === "DIM_MODULE" ? " (" + brightness + "%)" : "") + " request for " + module.identifier);
 
-		var moduleDiv = document.getElementById(module.identifier);
-
 		if (action === "SHOW_MODULE") {
-			module.show(
-				self.config.animationSpeed,
-				function () {
-					moduleDiv.style.filter = "brightness(100%)";
-					Log.log(self.name + " has shown " + module.identifier);
-				},
+			module["show"](
+				this.config.animationSpeed, 
+				() => {
+					Log.log(this.name + " has shown " + module.identifier);
+					this.setModuleBrightness(module.identifier, 100);
+				}, 
 				options
 			);
 			return true;
@@ -122,22 +119,25 @@ Module.register("MMM-ModuleScheduler", {
 
 		if (action === "HIDE_MODULE") {
 			module.hide(
-				self.config.animationSpeed,
-				function () {
-					Log.log(self.name + " has hidden " + module.identifier);
-				},
+				this.config.animationSpeed, 
+				Log.log(this.name + " has hidden " + module.identifier),
 				options
 			);
 			return true;
 		}
 
 		if (action === "DIM_MODULE") {
-			if (moduleDiv) {
-				moduleDiv.style.filter = "brightness(" + brightness + "%)";
-				Log.log(self.name + " has dimmed " + module.identifier + " to " + brightness + "%");
-				return true;
-			}
+			this.setModuleBrightness(module.identifier, brightness);
+			return true;
 		}
+
 		return false;
+	},
+	setModuleBrightness(moduleIdentifier, brightness = 100) {
+		const moduleDiv = document.getElementById(moduleIdentifier);
+		if (moduleDiv) {
+			moduleDiv.style.filter = "brightness(" + brightness + "%)";
+			Log.log(this.name + " has set the brightness of " + moduleIdentifier + " to " + brightness + "%");
+		}
 	}
 });
