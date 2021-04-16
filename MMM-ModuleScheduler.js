@@ -25,9 +25,11 @@ Module.register("MMM-ModuleScheduler", {
 		if (sender) {
 			return;
 		}
-		if (notification === "ALL_MODULES_STARTED" && this.config.notification_schedule) {
+		if (notification === "ALL_MODULES_STARTED") {
 			// Create notification schedules
-			this.sendSocketNotification("CREATE_NOTIFICATION_SCHEDULE", this.config.notification_schedule);
+			if (this.config.notification_schedule) {
+				this.sendSocketNotification("CREATE_NOTIFICATION_SCHEDULE", this.config.notification_schedule);
+			}
 		}
 		if (notification === "DOM_OBJECTS_CREATED") {
 			// Create global schedules
