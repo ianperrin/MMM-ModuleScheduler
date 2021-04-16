@@ -1,6 +1,6 @@
 {
 	"name": "MMM-ModuleScheduler",
-	"version": "1.4.1",
+	"version": "1.5.0",
 	"description": "A MagicMirror helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.",
 	"main": "MMM-ModuleScheduler.js",
 	"scripts": {
