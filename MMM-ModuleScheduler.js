@@ -76,7 +76,7 @@ Module.register("MMM-ModuleScheduler", {
 			.exceptModule(this)
 			.withClass(this.config.schedulerClass)
 			.find((module) => module.identifier === module_schedule.target);
-		const dimLevel = module_schedule.dimLevel ?? "25";
+		const dimLevel = module_schedule.dimLevel ? module_schedule.dimLevel : "25";
 		if (module) {
 			this.setModuleDisplay(module, action, dimLevel);
 		}
