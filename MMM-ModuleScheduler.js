@@ -7,7 +7,6 @@
 Module.register("MMM-ModuleScheduler", {
 	// Set the minimum MagicMirror module version for this module.
 	requiresVersion: "2.0.0",
-
 	// Module config defaults.
 	defaults: {
 		schedulerClass: "scheduler",
@@ -17,96 +16,93 @@ Module.register("MMM-ModuleScheduler", {
 		debug: true,
 		uselock: true
 	},
-
 	// Define start sequence.
 	start: function () {
 		Log.info("Starting module: " + this.name);
 		this.sendSocketNotification("INITIALISE_SCHEDULER", this.config);
 	},
-
 	notificationReceived: function (notification, payload, sender) {
-		var self = this;
-		if (sender === undefined && notification === "ALL_MODULES_STARTED") {
-			// Create notification schedules
-			if (this.config.notification_schedule) {
-				this.sendSocketNotification("CREATE_NOTIFICATION_SCHEDULE", this.config.notification_schedule);
-			}
+		if (sender) {
 			return;
 		}
-		if (sender === undefined && notification === "DOM_OBJECTS_CREATED") {
+		if (notification === "ALL_MODULES_STARTED" && this.config.notification_schedule) {
+			// Create notification schedules
+			this.sendSocketNotification("CREATE_NOTIFICATION_SCHEDULE", this.config.notification_schedule);
+		}
+		if (notification === "DOM_OBJECTS_CREATED") {
 			// Create global schedules
 			if (typeof this.config.global_schedule === "object") {
 				this.sendSocketNotification("CREATE_GLOBAL_SCHEDULE", this.config.global_schedule);
 			}
 			// Create module schedules
-			MM.getModules()
-				.exceptModule(this)
-				.withClass(this.config.schedulerClass)
-				.enumerate(function (module) {
-					Log.log(self.name + " wants to schedule the display of " + module.name);
-					if (typeof module.config.module_schedule === "object") {
-						self.sendSocketNotification("CREATE_MODULE_SCHEDULE", { name: module.name, id: module.identifier, schedule: module.config.module_schedule });
-					} else {
-						Log.error(module.name + " is configured to be scheduled, but the module_schedule option is undefined");
-					}
-				});
-			return;
+			this.createModuleSchedules();
 		}
 	},
-
 	socketNotificationReceived: function (notification, payload) {
-		var self = this;
+		// module schedule
 		if (notification === "SHOW_MODULE" || notification === "HIDE_MODULE" || notification === "DIM_MODULE") {
 			Log.log(this.name + " received a " + notification + " notification for " + payload.target);
-			MM.getModules()
-				.exceptModule(this)
-				.withClass(this.config.schedulerClass)
-				.enumerate(function (module) {
-					if (payload.target === module.identifier) {
-						self.setModuleDisplay(module, notification, payload.dimLevel ? payload.dimLevel : "25");
-						return;
-					}
-				});
-		}
-		if (notification === "SHOW_MODULES" || notification === "HIDE_MODULES" || notification === "DIM_MODULES") {
-			Log.log(this.name + " received a " + notification + " notification for " + (payload.target ? payload.target : "all") + " modules");
-			// Get all modules except this one
-			var modules = MM.getModules().exceptModule(this);
-			// Restrict to group of modules with specified class
-			if (payload.target) {
-				modules = modules.withClass(payload.target);
-			}
-			// Ignore specified modules
-			if (payload.ignoreModules) {
-				modules = modules.filter(function (module) {
-					if (payload.ignoreModules.indexOf(module.name) === -1) {
-						return true;
-					}
-					Log.log(self.name + " is ignoring " + module.name + " from the " + notification + " notification for " + (payload.target ? payload.target : "all") + " modules");
-					return false;
-				});
-			}
-			// Process the notification request
-			var action = notification.replace("_MODULES", "_MODULE");
-			var brightness = payload.dimLevel ? payload.dimLevel : "25";
-			for (var i = 0; i < modules.length; i++) {
-				this.setModuleDisplay(modules[i], action, brightness);
-			}
+			this.executeModuleSchedule(payload, notification);
 			return;
 		}
+		// global schedule
+		if (notification === "SHOW_MODULES" || notification === "HIDE_MODULES" || notification === "DIM_MODULES") {
+			Log.log(this.name + " received a " + notification + " notification for " + (payload.target ? payload.target : "all") + " modules");
+			this.executeGlobalSchedule(payload, notification);
+			return;
+		}
+		// notification schedule
 		if (notification === "SEND_NOTIFICATION") {
 			Log.log(this.name + " received a request to send a " + payload.target + " notification");
 			this.sendNotification(payload.target, payload.payload);
 			return;
 		}
 	},
-
+	createModuleSchedules: function () {
+		MM.getModules()
+			.exceptModule(this)
+			.withClass(this.config.schedulerClass)
+			.enumerate((module) => {
+				Log.log(this.name + " wants to schedule the display of " + module.name);
+				if (typeof module.config.module_schedule === "object") {
+					this.sendSocketNotification("CREATE_MODULE_SCHEDULE", { name: module.name, id: module.identifier, schedule: module.config.module_schedule });
+				} else {
+					Log.error(module.name + " is configured to be scheduled, but the module_schedule option is undefined");
+				}
+			});
+	},
+	executeModuleSchedule: function (module_schedule, action) {
+		const module = MM.getModules()
+			.exceptModule(this)
+			.withClass(this.config.schedulerClass)
+			.find((module) => module.identifier === module_schedule.target);
+		const dimLevel = module_schedule.dimLevel ?? "25";
+		if (module) {
+			this.setModuleDisplay(module, action, dimLevel);
+		}
+	},
+	executeGlobalSchedule: function (global_schedule, action) {
+		// Get all modules except this one
+		let modules = MM.getModules().exceptModule(this);
+		// Restrict to group of modules with specified class
+		if (global_schedule.target) {
+			modules = modules.withClass(global_schedule.target);
+		}
+		// Ignore specified modules
+		if (global_schedule.ignoreModules) {
+			Log.log(this.name + " is ignoring " + global_schedule.ignoreModules + " from the " + action + " notification for " + (global_schedule.target ? global_schedule.target : "all") + " modules");
+			modules = modules.filter((module) => !global_schedule.ignoreModules.includes(module.name));
+		}
+		// Process the notification request
+		action = action.replace("_MODULES", "_MODULE");
+		const brightness = global_schedule.dimLevel ? global_schedule.dimLevel : "25";
+		modules.forEach((module) => this.setModuleDisplay(module, action, brightness));
+	},
 	setModuleDisplay: function (module, action, brightness) {
 		const options = this.config.uselock ? { lockString: this.identifier } : "";
 		Log.log(this.name + " is processing the " + action + (action === "DIM_MODULE" ? " (" + brightness + "%)" : "") + " request for " + module.identifier);
-
 		if (action === "SHOW_MODULE") {
-			module["show"](
+			module.show(
 				this.config.animationSpeed,
 				() => {
 					Log.log(this.name + " has shown " + module.identifier);
@@ -116,17 +112,14 @@ Module.register("MMM-ModuleScheduler", {
 			);
 			return true;
 		}
-
 		if (action === "HIDE_MODULE") {
 			module.hide(this.config.animationSpeed, Log.log(this.name + " has hidden " + module.identifier), options);
 			return true;
 		}
-
 		if (action === "DIM_MODULE") {
 			this.setModuleBrightness(module.identifier, brightness);
 			return true;
 		}
-
 		return false;
 	},
 	setModuleBrightness(moduleIdentifier, brightness = 100) {
