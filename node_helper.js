@@ -132,7 +132,7 @@ module.exports = NodeHelper.create({
 
 			// Store next dates
 			if (i === 0 || showJob.nextDate().toDate() < nextShowDate) {
-        nextShowDate = new Date(showJob.nextDate()); //.toDate();
+				nextShowDate = new Date(showJob.nextDate()); //.toDate();
 			}
 			if (i === 0 || hideJob.nextDate().toDate() < nextShowDate) {
 				nextHideDate = new Date(hideJob.nextDate()); //.toDate();
