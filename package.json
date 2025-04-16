@@ -1,15 +1,15 @@
 {
 	"name": "MMM-ModuleScheduler",
-	"version": "1.5.0",
+	"version": "1.5.1",
 	"description": "A MagicMirror helper module to schedule when modules should be shown, hidden or dimmed and when notifications should be sent.",
 	"main": "MMM-ModuleScheduler.js",
 	"scripts": {
 		"test": "npm run test:unit && npm run test:prettier && npm run test:js",
 		"test:unit": "NODE_ENV=test mocha tests --recursive",
 		"test:prettier": "prettier --check **/*.{js,css,json,md,yml}",
-		"test:js": "eslint *.js tests/**/*.js --config .eslintrc.json",
+		"test:js": "eslint *.js tests/**/*.js --config .eslint.config.js",
 		"lint:prettier": "prettier --write **/*.{js,css,json,md,yml}",
-		"lint:js": "eslint *.js tests/**/*.js --config .eslintrc.json --fix"
+		"lint:js": "eslint *.js tests/**/*.js --config .eslint.config.js --fix"
 	},
 	"repository": {
 		"type": "git",
@@ -27,14 +27,14 @@
 	},
 	"homepage": "https://github.com/ianperrin/MMM-ModuleScheduler#readme",
 	"devDependencies": {
-		"chai": "^4.2.0",
-		"eslint": "^7.24.0",
-		"eslint-config-prettier": "^8.1.0",
-		"eslint-plugin-jsdoc": "^30.7.8",
-		"eslint-plugin-prettier": "^3.4.0",
-		"mocha": "^8.2.1",
-		"module-alias": "^2.2.2",
-		"prettier": "^2.2.1"
+		"chai": "^5.2.0",
+		"eslint": "^9.24.0",
+		"eslint-config-prettier": "^10.1.2",
+		"eslint-plugin-jsdoc": "^50.6.9",
+		"eslint-plugin-prettier": "^5.2.6",
+		"mocha": "^11.1.0",
+		"module-alias": "^2.2.3",
+		"prettier": "^3.5.3"
 	},
 	"dependencies": {
 		"cron": "^1.8.2"
