@@ -207,7 +207,6 @@ module.exports = NodeHelper.create({
 	/**
 	 * Returns a CronJob object that has been scheduled to trigger the
 	 * specified action based on the supplied cronTime and options
-	 *
 	 * @param {string}  type       the type of schedule to be created (either global, module or notification)
 	 * @param {object}   cronTime  a cron expression which determines when the job will fire
 	 * @param {string}   action    the action which should be performed (either show, hide, dim or send)
@@ -244,12 +243,12 @@ module.exports = NodeHelper.create({
 			return job;
 		} catch (ex) {
 			this.log(this.name + " could not create " + type + " schedule - check " + action + ' expression: "' + cronTime + '"');
+			return null;
 		}
 	},
 
 	/**
 	 * Returns either the original array or a new array holding the supplied value
-	 *
 	 * @param {object} 	 arrayOrString     either an existing array or value to be used to create the new array
 	 * @returns {object} an array
 	 * @see         Array
@@ -265,7 +264,6 @@ module.exports = NodeHelper.create({
 	/**
 	 * Validates a schedule definition by determining whether it has the required
 	 * properties defined
-	 *
 	 * @param {object}    schedule_definition  The schedule definition to be validated
 	 * @param {string}    type                 The type of schedule to be created (either global, module or notification)
 	 * @returns {boolean} true or false
@@ -288,7 +286,6 @@ module.exports = NodeHelper.create({
 
 	/**
 	 * Determine whether a string is a valid action
-	 *
 	 * @param {string} action The string to be validated
 	 * @returns {boolean}     true or false
 	 */
@@ -302,7 +299,6 @@ module.exports = NodeHelper.create({
 
 	/**
 	 * Gets an array of names for the properties required by the given schedule type
-	 *
 	 * @param {string} type The scheduled type for which properties are required
 	 * @returns {object}    An Array of property names
 	 */
@@ -318,7 +314,6 @@ module.exports = NodeHelper.create({
 
 	/**
 	 * Outputs a message to the console/log when debugging is enabled
-	 *
 	 * @param {string} msg  A string containing the message to be output
 	 */
 	log: function (msg) {
