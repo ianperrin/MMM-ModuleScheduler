@@ -97,7 +97,7 @@ module.exports = NodeHelper.create({
 			this.scheduledJobs.push({ notificationJob: notificationJob });
 
 			this.log(this.name + " has scheduled " + notificationSchedule.notification);
-			this.log(this.name + " will next send " + notificationSchedule.notification + " at " + notificationJob.nextDate().toDate());
+			this.log(this.name + " will next send " + notificationSchedule.notification + " at " + new Date(notificationJob.nextDate()));
 		}
 	},
 
@@ -131,11 +131,11 @@ module.exports = NodeHelper.create({
 			this.scheduledJobs.push({ module: module, schedule: moduleSchedule, showJob: showJob, hideJob: hideJob });
 
 			// Store next dates
-			if (i === 0 || showJob.nextDate().toDate() < nextShowDate) {
-				nextShowDate = new Date(showJob.nextDate()); //.toDate();
+			if (i === 0 || new Date(showJob.nextDate()) < nextShowDate) {
+				nextShowDate = new Date(showJob.nextDate());
 			}
-			if (i === 0 || hideJob.nextDate().toDate() < nextShowDate) {
-				nextHideDate = new Date(hideJob.nextDate()); //.toDate();
+			if (i === 0 || new Date(hideJob.nextDate()) < nextShowDate) {
+				nextHideDate = new Date(hideJob.nextDate());
 				nextDimLevel = moduleSchedule.dimLevel;
 			}
 		}
@@ -186,8 +186,8 @@ module.exports = NodeHelper.create({
 			this.scheduledJobs.push({ schedule: globalSchedule, showJob: showJob, hideJob: hideJob });
 
 			// Check next dates
-			var nextShowDate = showJob.nextDate().toDate();
-			var nextHideDate = hideJob.nextDate().toDate();
+			var nextShowDate = new Date(showJob.nextDate());
+			var nextHideDate = new Date(hideJob.nextDate());
 			var now = new Date();
 			if (nextShowDate > now && nextHideDate > nextShowDate) {
 				if (globalSchedule.dimLevel > 0) {
@@ -233,7 +233,7 @@ module.exports = NodeHelper.create({
 				function () {
 					self.log(self.name + " is sending " + notification + " to " + options.target);
 					self.sendSocketNotification(notification, options);
-					self.log(self.name + " will next send " + notification + " to " + options.target + " at " + this.nextDate().toDate() + ' based on "' + cronTime + '"');
+					self.log(self.name + " will next send " + notification + " to " + options.target + " at " + new Date(this.nextDate()) + ' based on "' + cronTime + '"');
 				},
 				function () {
 					self.log(self.name + " has completed the " + action + " job for " + options.target + ' based on "' + cronTime + '"');
