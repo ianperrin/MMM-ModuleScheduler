@@ -11,28 +11,13 @@ A [MagicMirror²](https://magicmirror.builders) helper module to schedule when m
 
 ## Installation
 
-In your terminal, go to your MagicMirror's Module folder:
+In your terminal, go to your MagicMirror's Module folder, clone this repository, go to the modules folder, install the dependencies:
 
 ```
 cd ~/MagicMirror/modules
-```
-
-Clone this repository:
-
-```
 git clone https://github.com/ianperrin/MMM-ModuleScheduler.git
-```
-
-Go to the modules folder:
-
-```
 cd MMM-ModuleScheduler
-```
-
-Install the dependencies:
-
-```
-npm install --production
+npm install --omit=dev
 ```
 
 Add the module to the modules array in the `config/config.js` file:

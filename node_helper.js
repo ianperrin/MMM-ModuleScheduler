@@ -132,10 +132,10 @@ module.exports = NodeHelper.create({
 
 			// Store next dates
 			if (i === 0 || showJob.nextDate().toDate() < nextShowDate) {
-				nextShowDate = showJob.nextDate().toDate();
+        nextShowDate = new Date(showJob.nextDate()); //.toDate();
 			}
 			if (i === 0 || hideJob.nextDate().toDate() < nextShowDate) {
-				nextHideDate = hideJob.nextDate().toDate();
+				nextHideDate = new Date(hideJob.nextDate()); //.toDate();
 				nextDimLevel = moduleSchedule.dimLevel;
 			}
 		}
@@ -229,18 +229,18 @@ module.exports = NodeHelper.create({
 		notification += type === SCHEDULE_TYPE_GLOBAL ? "S" : "";
 
 		try {
-			var job = new CronJob({
-				cronTime: cronTime,
-				onTick: function () {
+			var job = new CronJob(
+				cronTime,
+				function () {
 					self.log(self.name + " is sending " + notification + " to " + options.target);
 					self.sendSocketNotification(notification, options);
 					self.log(self.name + " will next send " + notification + " to " + options.target + " at " + this.nextDate().toDate() + ' based on "' + cronTime + '"');
 				},
-				onComplete: function () {
+				function () {
 					self.log(self.name + " has completed the " + action + " job for " + options.target + ' based on "' + cronTime + '"');
 				},
-				start: true
-			});
+				true
+			);
 			return job;
 		} catch (ex) {
 			this.log(this.name + " could not create " + type + " schedule - check " + action + ' expression: "' + cronTime + '"');
