@@ -228,7 +228,7 @@ module.exports = NodeHelper.create({
 		notification += type === SCHEDULE_TYPE_NOTIFICATION ? "_NOTIFICATION" : "_MODULE";
 		notification += type === SCHEDULE_TYPE_GLOBAL ? "S" : "";
 
-		//try {
+		try {
 			var job = new CronJob(
 				cronTime,
 				function () {
@@ -242,9 +242,9 @@ module.exports = NodeHelper.create({
 				true
 			);
 			return job;
-		//} catch (ex) {
-		//	this.log(this.name + " could not create " + type + " schedule - check " + action + ' expression: "' + cronTime + '"');
-		//}
+		} catch (ex) {
+			this.log(this.name + " could not create " + type + " schedule - check " + action + ' expression: "' + cronTime + '"');
+		}
 	},
 
 	/**
