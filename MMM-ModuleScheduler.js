@@ -14,7 +14,7 @@ Module.register("MMM-ModuleScheduler", {
 		animationSpeed: 1000,
 		notification_schedule: false,
 		global_schedule: false,
-		debug: true,
+		debug: false,
 		uselock: true
 	},
 
