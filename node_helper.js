@@ -7,6 +7,7 @@
 
 var NodeHelper = require("node_helper");
 var CronJob = require("cron").CronJob;
+var Sun = require("./sun_scheduler");
 
 // MODULE CONSTANTS
 const SCHEDULE_TYPE_GLOBAL = "global";
@@ -34,6 +35,7 @@ module.exports = NodeHelper.create({
 			this.log(this.name + " is setting the config");
 			this.config = payload;
 			this.removeScheduledJobs();
+			this.sunSettings = Sun.configure(payload.sun, console.log);
 			return true;
 		}
 		if (notification === "CREATE_NOTIFICATION_SCHEDULE") {
@@ -88,7 +90,7 @@ module.exports = NodeHelper.create({
 
 			// Create cronJobs
 			this.log(this.name + " is scheduling " + notificationSchedule.notification + ' using "' + notificationSchedule.schedule);
-			var notificationJob = this.createCronJob(SCHEDULE_TYPE_NOTIFICATION, notificationSchedule.schedule, JOB_ACTION_SEND, { target: notificationSchedule.notification, payload: notificationSchedule.payload });
+			var notificationJob = this.createCronJob(SCHEDULE_TYPE_NOTIFICATION, notificationSchedule.schedule, JOB_ACTION_SEND, { target: notificationSchedule.notification, payload: notificationSchedule.payload }, notificationSchedule.recalculate);
 			if (!notificationJob) {
 				break;
 			}
@@ -115,13 +117,13 @@ module.exports = NodeHelper.create({
 
 			// Create cronJobs
 			this.log(this.name + " is scheduling " + module.name + ' using "' + moduleSchedule.from + '" and "' + moduleSchedule.to + '" with dim level ' + moduleSchedule.dimLevel);
-			var showJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.from, JOB_ACTION_SHOW, { target: module.id });
+			var showJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.from, JOB_ACTION_SHOW, { target: module.id }, moduleSchedule.recalculate);
 
 			if (!showJob) {
 				break;
 			}
 			var hideJobAction = moduleSchedule.dimLevel ? JOB_ACTION_DIM : JOB_ACTION_HIDE;
-			var hideJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.to, hideJobAction, { target: module.id, dimLevel: moduleSchedule.dimLevel });
+			var hideJob = this.createCronJob(SCHEDULE_TYPE_MODULE, moduleSchedule.to, hideJobAction, { target: module.id, dimLevel: moduleSchedule.dimLevel }, moduleSchedule.recalculate);
 			if (!hideJob) {
 				showJob.stop();
 				break;
@@ -171,12 +173,12 @@ module.exports = NodeHelper.create({
 
 			// Create cronJobs
 			this.log(this.name + " is creating a global schedule for " + groupOrAll + ' modules using "' + globalSchedule.from + '" and "' + globalSchedule.to + '" with dim level ' + globalSchedule.dimLevel);
-			var showJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.from, JOB_ACTION_SHOW, { target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules });
+			var showJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.from, JOB_ACTION_SHOW, { target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules }, globalSchedule.recalculate);
 			if (!showJob) {
 				break;
 			}
 			var hideJobAction = globalSchedule.dimLevel ? JOB_ACTION_DIM : JOB_ACTION_HIDE;
-			var hideJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.to, hideJobAction, { dimLevel: globalSchedule.dimLevel, target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules });
+			var hideJob = this.createCronJob(SCHEDULE_TYPE_GLOBAL, globalSchedule.to, hideJobAction, { dimLevel: globalSchedule.dimLevel, target: globalSchedule.groupClass, ignoreModules: globalSchedule.ignoreModules }, globalSchedule.recalculate);
 			if (!hideJob) {
 				showJob.stop();
 				break;
@@ -211,10 +213,11 @@ module.exports = NodeHelper.create({
 	 * @param {object}   cronTime  a cron expression which determines when the job will fire
 	 * @param {string}   action    the action which should be performed (either show, hide, dim or send)
 	 * @param {object}   options   an object containing the options for the job (e.g. target, dimLevel, ignoreModules)
-	 * @returns {object} the scheduled cron job
+	 * @param {string}   [recalculate] for sun events: cron expression for when the event time is recalculated (overrides sun.recalculate)
+	 * @returns {object} the scheduled cron job (or a SunCronJob for sun events)
 	 * @see         CronJob
 	 */
-	createCronJob: function (type, cronTime, action, options) {
+	createCronJob: function (type, cronTime, action, options, recalculate) {
 		var self = this;
 
 		// Validate Action
@@ -227,14 +230,35 @@ module.exports = NodeHelper.create({
 		notification += type === SCHEDULE_TYPE_NOTIFICATION ? "_NOTIFICATION" : "_MODULE";
 		notification += type === SCHEDULE_TYPE_GLOBAL ? "S" : "";
 
+		var onTick = function () {
+			self.log(self.name + " is sending " + notification + " to " + options.target);
+			self.sendSocketNotification(notification, options);
+			self.log(self.name + " will next send " + notification + " to " + options.target + " at " + new Date(this.nextDate()) + ' based on "' + cronTime + '"');
+		};
+
+		// Sun event ("sunset", "dusk+15", "dawn-1h", ...) instead of a cron expression
+		var parsed = Sun.parse(cronTime);
+		if (parsed) {
+			if (Sun.eventNames().indexOf(parsed.event) === -1) {
+				console.error(this.name + ': unknown sun event "' + parsed.event + '" in "' + cronTime + '". Valid events: ' + Sun.eventNames().join(", "));
+				return null;
+			}
+			if (!this.sunSettings || this.sunSettings.lat === null) {
+				console.error(this.name + ': "' + cronTime + '" needs a location - set sun: { lat, lon } in the MMM-ModuleScheduler config');
+				return null;
+			}
+			try {
+				return new Sun.SunCronJob({ expression: cronTime, parsed: parsed, settings: this.sunSettings, recalculate: recalculate, onTick: onTick, log: console.log });
+			} catch (ex) {
+				console.error(this.name + ' could not create sun schedule for "' + cronTime + '" - check the recalculate expression: "' + (recalculate || this.sunSettings.recalculate) + '"');
+				return null;
+			}
+		}
+
 		try {
 			var job = new CronJob(
 				cronTime,
-				function () {
-					self.log(self.name + " is sending " + notification + " to " + options.target);
-					self.sendSocketNotification(notification, options);
-					self.log(self.name + " will next send " + notification + " to " + options.target + " at " + new Date(this.nextDate()) + ' based on "' + cronTime + '"');
-				},
+				onTick,
 				function () {
 					self.log(self.name + " has completed the " + action + " job for " + options.target + ' based on "' + cronTime + '"');
 				},

@@ -37,6 +37,7 @@
 		"prettier": "^3.5.3"
 	},
 	"dependencies": {
-		"cron": "^4.3.0"
+		"cron": "^4.3.0",
+		"suncalc": "^2.0.2"
 	}
 }
