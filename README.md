@@ -30,14 +30,15 @@ Add the module to the modules array in the `config/config.js` file:
 
 ## Config Options
 
-| **Option**              | **Default** | **Description**                                                                                                                                                  |
-| ----------------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `schedulerClass`        | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule.                                               |
-| `animationSpeed`        | 1000        | **Optional** The speed of the show and hide animations in milliseconds                                                                                           |
-| `notification_schedule` |             | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications) |
-| `global_schedule`       |             | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)    |
-| `uselock`               | `true`      | **Optional** If set to `false`, scheduler don't lock the hidden modules. Other modules can then be used to show the modules if they are hidden by the scheduler. |
-| `debug`                 | `true`      | **Optional** Outputs messages to the console/log when set to `true`                                                                                              |
+| **Option**              | **Default** | **Description**                                                                                                                                                   |
+| ----------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schedulerClass`        | 'scheduler' | **Optional** The name of the class which should be used to identify the modules which have an individual schedule.                                                |
+| `animationSpeed`        | 1000        | **Optional** The speed of the show and hide animations in milliseconds                                                                                            |
+| `notification_schedule` |             | **Optional** A single, or array of multiple definitions to schedule when notifications should be sent. See [Scheduling Notifications](#scheduling-notifications)  |
+| `global_schedule`       |             | **Optional** A single, or array of multiple definitions to schedule when all modules should be shown/hidden/dimmed. See [Global Schedules](#global-schedules)     |
+| `sun`                   |             | **Optional** Location and settings for sun events such as `'sunset'` or `'dusk+15'`. Only needed if you use them. See [Sun Event Schedules](#sun-event-schedules) |
+| `uselock`               | `true`      | **Optional** If set to `false`, scheduler don't lock the hidden modules. Other modules can then be used to show the modules if they are hidden by the scheduler.  |
+| `debug`                 | `true`      | **Optional** Outputs messages to the console/log when set to `true`                                                                                               |
 
 ## Config Examples
 
@@ -55,6 +56,10 @@ Module Display
 - [Dimming modules](#dimming-modules)
 - [Multiple schedules](#multiple-schedules)
 - [Ignoring Modules](#ignoring-modules)
+
+Sun Events
+
+- [Scheduling by sunrise, sunset, dusk, dawn...](#sun-event-schedules)
 
 ### Scheduling Notifications
 
@@ -292,12 +297,78 @@ To ignore modules from being shown, hidden or dimmed by a global schedules, add 
 
 - Modules are ignored based on their name, as defined in the config file. If multiple instances of a single module are defined in the `config.js` file, all instances will be ignored using this option.
 
+### Sun Event Schedules
+
+Instead of a cron expression, `from`, `to` (in `global_schedule` and `module_schedule`) and `schedule` (in `notification_schedule`) can be a sun event such as `'sunset'`, `'dusk+15'` or `'dawn-1h'`. The times are calculated locally for your location with [suncalc](https://github.com/mourner/suncalc), so they follow the seasons automatically and no internet connection or other module is needed.
+
+Add your location as the `sun` option, e.g.
+
+```javascript
+    {
+        module: 'MMM-ModuleScheduler',
+        config: {
+            sun: { lat: 47.61, lon: -122.33 },
+            global_schedule: [
+                // SHOW MODULES WITH THE CLASS 'night_scheduler' FROM CIVIL DUSK UNTIL CIVIL DAWN
+                {from: 'dusk', to: 'dawn', groupClass: 'night_scheduler'},
+                // SHOW MODULES WITH THE CLASS 'daytime_scheduler' FROM 30 MINUTES AFTER SUNRISE UNTIL 1 HOUR BEFORE SUNSET
+                {from: 'sunrise+30', to: 'sunset-1h', groupClass: 'daytime_scheduler'},
+                // CRON EXPRESSIONS STILL WORK ALONGSIDE SUN EVENTS
+                {from: '0 9 * * *', to: '0 17 * * *', groupClass: 'work_scheduler'}
+            ],
+            // SHOW AN ALERT AT SUNSET
+            notification_schedule: {notification: 'SHOW_ALERT', schedule: 'sunset', payload: {type: 'notification', title: 'Sunset'}}
+        }
+    },
+```
+
+The `sun` option accepts:
+
+| **Option**    | **Default**     | **Description**                                                                                                                                                                    |
+| ------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lat`         |                 | **Required for sun events** Your latitude in decimal degrees (-90 to 90, south is negative).                                                                                       |
+| `lon`         |                 | **Required for sun events** Your longitude in decimal degrees (-180 to 180, west is negative).                                                                                     |
+| `recalculate` | `'0 5 0 * * *'` | **Optional** A cron expression for when sun times are recalculated. The default is every day at 00:05. Can be overridden per schedule (see below).                                 |
+| `events`      |                 | **Optional** Custom events defined by the sun's angle, e.g. `[{angle: -3, rise: 'lateDawn', set: 'earlyDusk'}]`. The `rise` and `set` names can then be used like any other event. |
+
+**Sun expressions**
+
+An expression is an event name, optionally followed by an offset: `+` or `-`, a number, and an optional unit. No unit or `m`/`min` means minutes, and `h` means hours, e.g. `'sunset'`, `'dusk+15'`, `'dawn-30'`, `'sunset-1.5h'`.
+
+| **Event**                       | **Sun's position**                                |
+| ------------------------------- | ------------------------------------------------- |
+| `nightEnd` / `night`            | 18° below the horizon (astronomical dawn / dusk)  |
+| `nauticalDawn` / `nauticalDusk` | 12° below the horizon                             |
+| `dawn` / `dusk`                 | 6° below the horizon (civil dawn / dusk)          |
+| `sunrise` / `sunset`            | Top edge of the sun at the horizon                |
+| `sunriseEnd` / `sunsetStart`    | Bottom edge of the sun at the horizon             |
+| `goldenHourEnd` / `goldenHour`  | 6° above the horizon (end / start of golden hour) |
+| `solarNoon` / `nadir`           | Sun at its highest / lowest                       |
+
+**Recalculation**
+
+At each recalculation, the next time of each sun event is worked out and the event is scheduled daily at that time of day until the next recalculation. With the default (daily), the times are always that day's. To recalculate less often for a particular schedule, add the `recalculate` option to it, e.g.
+
+```javascript
+    // RECALCULATE THESE SUN TIMES ON MONDAYS AT 03:00 INSTEAD OF DAILY
+    {from: 'sunrise', to: 'sunset', groupClass: 'daytime_scheduler', recalculate: '0 0 3 * * 1'}
+```
+
+**Notes**
+
+- `lat` and `lon` are only needed if a sun event is used. Without sun events, no sun times are calculated and no extra timers are created.
+- Sun times use the system time zone of the device running MagicMirror, so make sure it is set correctly.
+- The calculated times are logged when MagicMirror starts and whenever they change, e.g. `"dusk" set to 17:09:26 daily ... recalculated on "0 5 0 * * *"`.
+- A misspelled event name or a missing location is logged as an error and that schedule is not created. As with an invalid cron expression, the remaining definitions in the same array are not scheduled either, so check the log after changing your config.
+- If an event does not happen on a day (e.g. no `dusk` during summer near the poles), a warning is logged and the previous time is kept.
+
 ## Updating
 
 To update the module to the latest version, use your terminal to go to your MMM-ModuleScheduler module folder and type the following command:
 
 ```
 git pull
+npm install --omit=dev
 ```
 
 If you haven't changed the modules, this should work without any problems.
